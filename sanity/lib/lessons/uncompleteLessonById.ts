@@ -1,4 +1,4 @@
-import { client } from "../adminClient";
+import { adminClient } from "../adminClient";
 import { sanityFetch } from "../live";
 import groq from "groq";
 
@@ -22,7 +22,7 @@ export async function uncompleteLessonById({
   }
 
   // Find and delete the lesson completion record
-  await client.delete({
+  await adminClient.delete({
     query: `*[_type == "lessonCompletion" && student._ref == $studentId && lesson._ref == $lessonId][0]`,
     params: { studentId: student.data, lessonId },
   });

@@ -1,7 +1,7 @@
 import { urlFor } from "@/sanity/lib/image";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, BookOpen } from "lucide-react";
+import { ArrowLeft, BookOpen, Lock, Calendar } from "lucide-react";
 import EnrollButton from "@/components/EnrollButton";
 import getCourseBySlug from "@/sanity/lib/courses/getCourseBySlug";
 import { isEnrolledInCourse } from "@/sanity/lib/student/isEnrolledInCourse";
@@ -11,6 +11,53 @@ interface CoursePageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+// Interfaz extendida para el tipo Lesson con las nuevas propiedades
+interface Lesson {
+  _id: string;
+  title?: string;
+  slug?: { current: string };
+  description?: string;
+  videoUrl?: string;
+  activationDate?: string;     // Nueva propiedad añadida al esquema
+  isAlwaysAccessible?: boolean; // Nueva propiedad añadida al esquema
+  [key: string]: any;
+}
+
+// Función para verificar si una lección está disponible según su fecha de activación
+function isLessonAvailable(lesson: Lesson): boolean {
+  console.log("estoy entrando a la fucion isLessonAvailable");
+  // Si la lección está marcada como siempre accesible, retornar true
+  if (lesson.isAlwaysAccessible) {
+    return true;
+  }
+
+  // Si no tiene fecha de activación, por defecto es accesible
+  if (!lesson.activationDate) {
+    return true;
+  }
+
+  // Comparar la fecha actual con la fecha de activación
+  const now = new Date();
+  const activationDate = new Date(lesson.activationDate);
+  console.log(now, activationDate);
+
+  // La lección está disponible si la fecha actual es posterior a la fecha de activación
+  return now >= activationDate;
+}
+
+// Función para formatear la fecha en formato legible
+function formatDate(dateString: string): string {
+  if (!dateString) return "";
+  
+  const options: Intl.DateTimeFormatOptions = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  };
+  
+  return new Date(dateString).toLocaleDateString('es-ES', options);
 }
 
 export default async function CoursePage({ params }: CoursePageProps) {
@@ -97,24 +144,72 @@ export default async function CoursePage({ params }: CoursePageProps) {
                       </h3>
                     </div>
                     <div className="divide-y divide-border">
-                      {module.lessons?.map((lesson, lessonIndex) => (
-                        <div
-                          key={lesson._id}
-                          className="p-4 hover:bg-muted/50 transition-colors"
-                        >
-                          <div className="flex items-center gap-4">
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
-                              {lessonIndex + 1}
-                            </div>
-                            <div className="flex items-center gap-3 text-foreground">
-                              <BookOpen className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium">
-                                {lesson.title}
-                              </span>
+                      {module.lessons?.map((lesson, lessonIndex) => {
+                        // Usamos el tipo extendido para la lección
+                        const typedLesson = lesson as Lesson;
+                        // Determinar si la lección está disponible
+                        const isAvailable = isLessonAvailable(typedLesson);
+                        console.log("isAvailable", isAvailable);
+                        
+                        return (
+                          <div
+                            key={typedLesson._id}
+                            className={`p-4 transition-colors ${
+                              isAvailable 
+                                ? "hover:bg-muted/50 cursor-pointer" 
+                                : "bg-muted/20 cursor-not-allowed opacity-70"
+                            }`}
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-medium ${
+                                isAvailable 
+                                  ? "bg-primary/10 text-primary" 
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                {lessonIndex + 1}
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 text-foreground">
+                                  {isAvailable ? (
+                                    <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                  ) : (
+                                    <Lock className="h-4 w-4 text-muted-foreground" />
+                                  )}
+                                  <span className="font-medium">
+                                    {typedLesson.title}
+                                  </span>
+                                </div>
+                                
+                                {!isAvailable && typedLesson.activationDate && (
+                                  <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>Disponible a partir del {formatDate(typedLesson.activationDate)}</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Botón de acceso condicionado al estado de inscripción y disponibilidad */}
+                              {isEnrolled && (
+                                <Link
+                                  href={
+                                    isAvailable 
+                                      ? `/courses/${slug}/lessons/${typedLesson.slug?.current}` 
+                                      : "#"
+                                  }
+                                  onClick={(e) => !isAvailable && e.preventDefault()}
+                                  className={`text-xs px-3 py-1 rounded ${
+                                    isAvailable 
+                                      ? "bg-primary text-primary-foreground hover:bg-primary/90" 
+                                      : "bg-muted text-muted-foreground"
+                                  }`}
+                                >
+                                  {isAvailable ? "Ver lección" : "Bloqueada"}
+                                </Link>
+                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

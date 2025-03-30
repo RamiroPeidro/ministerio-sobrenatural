@@ -1,5 +1,5 @@
 import groq from "groq";
-import { client } from "../adminClient";
+import { adminClient } from "../adminClient";
 import { getStudentByClerkId } from "../student/getStudentByClerkId";
 import { sanityFetch } from "../live";
 
@@ -47,7 +47,7 @@ export async function completeLessonById({
     }
 
     // Create new completion record
-    const completion = await client.create({
+    const completion = await adminClient.create({
       _type: "lessonCompletion",
       student: {
         _type: "reference",

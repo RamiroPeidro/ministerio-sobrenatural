@@ -38,5 +38,17 @@ export const categoryType = defineType({
       type: "string",
       description: "Color code for the category (e.g., #FF0000)",
     }),
+    defineField({
+      name: "zoomLink",
+      title: "Zoom Link",
+      type: "url",
+      description: "Zoom meeting link for this category",
+    }),
+    defineField({
+      name: "zoomPassword",
+      title: "Zoom Password",
+      type: "string",
+      description: "Password for the Zoom meeting (if needed)",
+    }),
   ],
 });

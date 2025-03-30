@@ -1,7 +1,7 @@
 import { Webhook } from 'svix'
 import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
-import { client } from '@/sanity/lib/adminClient'
+import { adminClient } from '@/sanity/lib/adminClient'
 
 async function createSanityUser(
   userId: string,
@@ -11,7 +11,7 @@ async function createSanityUser(
 ) {
   try {
     // Check if user already exists
-    const existingUser = await client.fetch(  
+    const existingUser = await adminClient.fetch(  
       `*[_type == "student" && clerkId == $userId][0]`,
       { userId }
     )
@@ -22,7 +22,7 @@ async function createSanityUser(
     }
 
   
-    const newUser = await client.create({
+    const newUser = await adminClient.create({
       _type: 'student',
       clerkId: userId,
       firstName,

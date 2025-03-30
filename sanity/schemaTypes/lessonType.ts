@@ -60,6 +60,20 @@ export const lessonType = defineType({
         }),
     }),
     defineField({
+      name: "activationDate",
+      title: "Activation Date",
+      type: "datetime",
+      description: "Date when this lesson becomes available to students",
+      initialValue: () => new Date().toISOString(),
+    }),
+    defineField({
+      name: "isAlwaysAccessible",
+      title: "Always Accessible",
+      type: "boolean",
+      description: "If enabled, this lesson will be available regardless of the activation date",
+      initialValue: false,
+    }),
+    defineField({
       name: "content",
       title: "Content",
       type: "array",

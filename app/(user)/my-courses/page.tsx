@@ -1,4 +1,4 @@
-import { CalendarClock, ExternalLink } from "lucide-react"
+import { CalendarClock, ExternalLink, VideoIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { currentUser } from "@clerk/nextjs/server";
@@ -7,9 +7,10 @@ import { getEnrolledCourses } from "@/sanity/lib/student/getEnrolledCourses";
 import Link from "next/link";
 import { getCourseProgress } from "@/sanity/lib/lessons/getCourseProgress";
 import { CourseCard } from "@/components/CourseCard";
+import { getStudentCategory } from "@/sanity/lib/categories/getStudentCategory";
 
-// Constantes para los encuentros virtuales
-const MEETING_LINK = "https://tu-link-de-zoom.com";
+// Constante de respaldo para los encuentros virtuales
+const DEFAULT_MEETING_LINK = "https://tu-link-de-zoom.com";
 
 function getNextTuesday(from: Date = new Date()): Date {
   const date = new Date(from);
@@ -45,6 +46,9 @@ export default async function MyCoursesPage() {
 
   const enrolledCourses = await getEnrolledCourses(user.id);
 
+  // Obtener la categoría del estudiante y su enlace de Zoom
+  const studentCategory = await getStudentCategory(user.id);
+
   // Get progress for each enrolled course
   const coursesWithProgress = await Promise.all(
     enrolledCourses.map(async ({ course }) => {
@@ -63,7 +67,7 @@ export default async function MyCoursesPage() {
   const nextMeeting = {
     date: nextTuesday,
     title: isPresential ? "Encuentro Presencial" : "Encuentro Virtual",
-    link: isPresential ? "ubicación-del-encuentro-presencial" : MEETING_LINK,
+    link: isPresential ? "ubicación-del-encuentro-presencial" : (studentCategory?.zoomLink || DEFAULT_MEETING_LINK),
   };
 
   const formatDate = (date: Date) => {
@@ -85,6 +89,35 @@ export default async function MyCoursesPage() {
             Bienvenido al Ministerio Sobrenatural. Acá puedes ver todos tus cursos y próximos encuentros.
           </p>
         </div>
+
+        {/* Tarjeta de Zoom de la categoría */}
+        {studentCategory?.zoomLink && (
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-medium">
+                Clases en vivo - {studentCategory.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  Accede a las clases en vivo de tu categoría
+                </p>
+                <Button className="w-full md:w-auto" asChild>
+                  <a href={studentCategory.zoomLink} target="_blank" rel="noopener noreferrer">
+                    <VideoIcon className="mr-2 h-4 w-4" />
+                    Unirse a Zoom
+                    {studentCategory.zoomPassword && (
+                      <span className="ml-2 text-xs">
+                        (Contraseña: {studentCategory.zoomPassword})
+                      </span>
+                    )}
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader className="pb-2">

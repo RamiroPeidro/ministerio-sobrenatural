@@ -33,6 +33,13 @@ export const studentType = defineType({
       title: "Profile Image URL",
       type: "url",
     }),
+    defineField({
+      name: "category",
+      title: "Category",
+      type: "reference",
+      to: [{ type: "category" }],
+      description: "The category to which this student belongs",
+    }),
   ],
   preview: {
     select: {
@@ -42,13 +49,14 @@ export const studentType = defineType({
     },
     prepare({ firstName, lastName, imageUrl }) {
       return {
-        title: `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)} ${lastName.charAt(0).toUpperCase()}${lastName.slice(1)}`,
+        title: `${firstName?.charAt(0).toUpperCase() || ""}${firstName?.slice(1) || ""} ${lastName?.charAt(0).toUpperCase() || ""}${lastName?.slice(1) || ""}`,
         media: (
           <Image
             src={imageUrl}
-            alt={`${firstName} ${lastName}`}
+            alt={`${firstName || ""} ${lastName || ""}`}
             width={100}
             height={100}
+            style={{ objectFit: "cover", borderRadius: "50%" }}
           />
         ),
       };

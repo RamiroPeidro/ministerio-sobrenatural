@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { defineField, defineType } from "sanity";
 import { urlFor } from "../lib/image";
 
@@ -53,14 +52,7 @@ export const lessonCompletionType = defineType({
       return {
         title: `${courseTitle || "Course"}: "${lessonTitle || "Lesson"}"`,
         subtitle: completedAt ? new Date(completedAt).toLocaleDateString() : "",
-        media: (
-          <Image
-            src={urlFor(courseImage).url()}
-            alt={courseTitle}
-            width={100}
-            height={100}
-          />
-        ),
+        media: courseImage // Sanity maneja automáticamente la vista previa de las imágenes
       };
     },
   },
