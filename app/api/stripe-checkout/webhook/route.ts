@@ -56,8 +56,6 @@ export async function POST(req: Request) {
       await createEnrollment({
         studentId: student.data._id,
         courseId,
-        paymentId: session.id,
-        amount: session.amount_total! / 100, // Convert from cents to dollars
       });
 
       return new NextResponse(null, { status: 200 });

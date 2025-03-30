@@ -21,20 +21,6 @@ export const enrollmentType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
-      name: "amount",
-      title: "Amount",
-      type: "number",
-      validation: (rule) => rule.required().min(0),
-      description: "The amount paid for the course enrollment in cents",
-    }),
-    defineField({
-      name: "paymentId",
-      title: "Payment ID",
-      type: "string",
-      validation: (rule) => rule.required(),
-      description: "The Stripe payment/checkout session ID",
-    }),
-    defineField({
       name: "enrolledAt",
       title: "Enrolled At",
       type: "datetime",
@@ -52,14 +38,24 @@ export const enrollmentType = defineType({
       return {
         title: `${studentFirstName} ${studentLastName}`,
         subtitle: courseTitle,
-        media: (
-          <Image
-            src={studentImage}
-            alt={`${studentFirstName} ${studentLastName}`}
-            width={100}
-            height={100}
-          />
-        ),
+        media: studentImage ? (
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              borderRadius: "50%",
+              overflow: "hidden",
+            }}
+          >
+            <Image
+              src={studentImage}
+              alt={`${studentFirstName} ${studentLastName}`}
+              layout="fill"
+              objectFit="cover"
+            />
+          </div>
+        ) : undefined,
       };
     },
   },

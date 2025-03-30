@@ -18,8 +18,13 @@ export default function AuthPage() {
   }, [])
 
   // Este efecto verifica si el usuario está autenticado y redirige a /my-courses
+  // pero solo si no es un usuario recién registrado
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
+    // Obtener el parámetro de la URL para saber si es un registro nuevo
+    const urlParams = new URLSearchParams(window.location.search);
+    const isNewSignUp = urlParams.get('signup') === 'true';
+    
+    if (isLoaded && isSignedIn && !isNewSignUp) {
       console.log("Usuario autenticado, redirigiendo a /my-courses");
       router.push("/my-courses");
     }
@@ -188,8 +193,8 @@ export default function AuthPage() {
                       >
                         <SignUp
                           routing="hash"
-                          afterSignUpUrl="/my-courses"
-                          redirectUrl="/my-courses"
+                          afterSignUpUrl="/onboarding?signup=true"
+                          redirectUrl="/onboarding?signup=true"
                           appearance={{
                             elements: {
                               formButtonPrimary:

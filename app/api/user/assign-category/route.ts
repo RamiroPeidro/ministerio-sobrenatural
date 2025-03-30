@@ -73,12 +73,10 @@ export async function POST(req: Request) {
     const enrollments = await Promise.all(
       courses.map(async (course: Course) => {
         try {
-          // Verificar cómo se usa createEnrollment
+          // Llamar a createEnrollment con los parámetros actualizados
           return await createEnrollment({
             studentId: student._id,
-            courseId: course._id,
-            amount: 0,
-            paymentId: "category-auto-enrollment"
+            courseId: course._id
           });
         } catch (error) {
           console.error(`Error enrolling in course ${course.title}:`, error);

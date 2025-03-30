@@ -25,6 +25,12 @@ export default clerkMiddleware((auth, req) => {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
 
+  // Permitir acceso a la página de onboarding incluso si el usuario está autenticado
+  if (path === "/onboarding") {
+    console.log("Permitiendo acceso a la página de onboarding");
+    return NextResponse.next();
+  }
+
   // Redirigir a /my-courses si está autenticado y en página de auth
   if (isSignedIn && ["/auth", "/sign-in", "/sign-up"].includes(path)) {
     console.log("Redirigiendo a /my-courses");

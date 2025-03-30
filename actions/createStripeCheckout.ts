@@ -49,8 +49,6 @@ export async function createStripeCheckout(courseId: string, userId: string) {
       await createEnrollment({
         studentId: user._id,
         courseId: course._id,
-        paymentId: "free",
-        amount: 0,
       });
 
       return { url: `/courses/${course.slug?.current}` };

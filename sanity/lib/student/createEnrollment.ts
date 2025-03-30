@@ -1,19 +1,15 @@
-import { client } from "../adminClient";
+import { adminClient } from "../adminClient";
 
 interface CreateEnrollmentParams {
   studentId: string;
   courseId: string;
-  paymentId: string;
-  amount: number;
 }
 
 export async function createEnrollment({
   studentId,
   courseId,
-  paymentId,
-  amount,
 }: CreateEnrollmentParams) {
-  return client.create({
+  return adminClient.create({
     _type: "enrollment",
     student: {
       _type: "reference",
@@ -23,8 +19,6 @@ export async function createEnrollment({
       _type: "reference",
       _ref: courseId,
     },
-    paymentId,
-    amount,
     enrolledAt: new Date().toISOString(),
   });
 }

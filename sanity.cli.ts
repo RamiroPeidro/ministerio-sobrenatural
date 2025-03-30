@@ -9,6 +9,5 @@ const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET;
 
 export default defineCliConfig({
   api: { projectId, dataset },
-
-  studioHost: "lms-papafam",
+  // Eliminamos el studioHost para que no intente crear un nuevo studio
 });

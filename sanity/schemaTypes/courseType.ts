@@ -11,13 +11,6 @@ export const courseType = defineType({
       type: "string",
       validation: (rule) => rule.required(),
     }),
-    {
-      name: "price",
-      title: "Price (USD)",
-      type: "number",
-      description: "Price in USD",
-      validation: (Rule) => Rule.min(0),
-    },
     defineField({
       name: "slug",
       title: "Slug",

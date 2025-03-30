@@ -21,13 +21,14 @@ async function createSanityUser(
       return existingUser
     }
 
-  
+    // Crear el usuario en Sanity sin asignarle categoría
     const newUser = await adminClient.create({
       _type: 'student',
       clerkId: userId,
       firstName,
       lastName,
       email
+      // No se asigna categoría aquí, eso se hará en la página de onboarding
     })
 
     console.log('Created new user in Sanity:', newUser)
