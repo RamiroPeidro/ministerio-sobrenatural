@@ -6,6 +6,24 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Ocultar el botón de Sign Up de Clerk */
+.cl-footerActionLink[data-localization-key="formButtonPrimary.signUp"],
+.cl-formButtonPrimary[data-localization-key="signIn.signUpLink"],
+.cl-footerAction:has(> a[href*="sign-up"]),
+.cl-authButtonText[href*="sign-up"],
+div:has(> .cl-footerActionLink[href*="sign-up"]) {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  overflow: hidden !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

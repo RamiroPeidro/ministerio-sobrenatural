@@ -18,13 +18,8 @@ export default function AuthPage() {
   }, [])
 
   // Este efecto verifica si el usuario está autenticado y redirige a /my-courses
-  // pero solo si no es un usuario recién registrado
   useEffect(() => {
-    // Obtener el parámetro de la URL para saber si es un registro nuevo
-    const urlParams = new URLSearchParams(window.location.search);
-    const isNewSignUp = urlParams.get('signup') === 'true';
-    
-    if (isLoaded && isSignedIn && !isNewSignUp) {
+    if (isLoaded && isSignedIn) {
       console.log("Usuario autenticado, redirigiendo a /my-courses");
       router.push("/my-courses");
     }
@@ -170,6 +165,8 @@ export default function AuthPage() {
                               identityPreviewEditButton: "text-primary hover:text-primary/90",
                               socialButtonsBlockButton:
                                 "border border-border hover:border-primary/20 transition-all duration-200",
+                              footerAction__signUp: "!hidden !opacity-0 !w-0 !h-0 !overflow-hidden !m-0 !p-0", // Ocultar el botón de registro interno de Clerk con fuerza
+                              footer: "!pb-0", // Reducir el espacio inferior
                             },
                           }}
                         />
@@ -193,8 +190,11 @@ export default function AuthPage() {
                       >
                         <SignUp
                           routing="hash"
-                          afterSignUpUrl="/onboarding?signup=true"
-                          redirectUrl="/onboarding?signup=true"
+                          afterSignUpUrl="/onboarding"
+                          redirectUrl="/onboarding"
+                          unsafeMetadata={{
+                            redirect: "/onboarding" // Metadata adicional para asegurar la redirección
+                          }}
                           appearance={{
                             elements: {
                               formButtonPrimary:
@@ -210,6 +210,7 @@ export default function AuthPage() {
                               dividerText: "text-muted-foreground",
                               socialButtonsBlockButton:
                                 "border border-border hover:border-primary/20 transition-all duration-200",
+                              footerAction__signIn: "hidden", // Ocultar el botón de inicio de sesión interno
                             },
                           }}
                         />

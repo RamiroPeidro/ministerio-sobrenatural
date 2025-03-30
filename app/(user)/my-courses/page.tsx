@@ -9,8 +9,8 @@ import { getCourseProgress } from "@/sanity/lib/lessons/getCourseProgress";
 import { CourseCard } from "@/components/CourseCard";
 import { getStudentCategory } from "@/sanity/lib/categories/getStudentCategory";
 
-// Constante de respaldo para los encuentros virtuales
-const DEFAULT_MEETING_LINK = "https://tu-link-de-zoom.com";
+// Constante de respaldo para los encuentros virtuales (ya no es necesaria)
+// const DEFAULT_MEETING_LINK = "https://tu-link-de-zoom.com";
 
 function getNextTuesday(from: Date = new Date()): Date {
   const date = new Date(from);
@@ -61,15 +61,6 @@ export default async function MyCoursesPage() {
     })
   );
 
-  // Obtener el próximo encuentro
-  const nextTuesday = getNextTuesday();
-  const isPresential = isPresentialDate(nextTuesday);
-  const nextMeeting = {
-    date: nextTuesday,
-    title: isPresential ? "Encuentro Presencial" : "Encuentro Virtual",
-    link: isPresential ? "ubicación-del-encuentro-presencial" : (studentCategory?.zoomLink || DEFAULT_MEETING_LINK),
-  };
-
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("es", {
       weekday: "long",
@@ -118,28 +109,6 @@ export default async function MyCoursesPage() {
             </CardContent>
           </Card>
         )}
-
-        <Card className="bg-primary/5 border-primary/20">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Próximo Encuentro</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <CalendarClock className="h-5 w-5 text-primary" />
-                  <span className="font-medium">{formatDate(nextMeeting.date)}</span>
-                </div>
-                <h3 className="text-xl font-semibold">{nextMeeting.title}</h3>
-              </div>
-              <Button className="w-full md:w-auto" asChild>
-                <a href={nextMeeting.link} target="_blank" rel="noopener noreferrer">
-                  {isPresential ? 'Ver Ubicación' : 'Unirse al Encuentro'} <ExternalLink className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         <div className="container mx-auto px-4 py-8">
           {enrolledCourses.length === 0 ? (
