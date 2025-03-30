@@ -11,6 +11,6 @@ export const client = createClient({
   stega: {
     studioUrl: `${baseUrl}/studio`,
   },
-  // Token de solo lectura para consultas públicas
-  token: process.env.SANITY_API_TOKEN,
+  // Usar token de solo lectura o token de admin como respaldo
+  token: process.env.SANITY_API_TOKEN || process.env.SANITY_API_ADMIN_TOKEN,
 });

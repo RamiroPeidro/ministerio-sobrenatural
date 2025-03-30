@@ -18,8 +18,8 @@ export default function UserLayout({
     <ClerkProvider>
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="light"
+        enableSystem={false}
         disableTransitionOnChange
       >
         <div className="min-h-screen flex flex-col">

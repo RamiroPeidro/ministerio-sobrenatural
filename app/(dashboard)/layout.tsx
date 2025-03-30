@@ -18,8 +18,8 @@ export default function DashboardLayout({
     <ClerkProvider>
       <ThemeProvider
         attribute="class"
-        defaultTheme="system"
-        enableSystem
+        defaultTheme="light"
+        enableSystem={false}
         disableTransitionOnChange
       >
         <SidebarProvider>
