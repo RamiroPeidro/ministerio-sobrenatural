@@ -144,7 +144,7 @@ export default async function MyCoursesPage() {
         <div className="container mx-auto px-4 py-8">
           {enrolledCourses.length === 0 ? (
             <div className="text-center py-12">
-              <h2 className="text-2xl font-semibold mb-4">Aún no tienes cursos</h2>
+              <h2 className="text-2xl font-semibold mb-4">Aún no tenes cursos</h2>
               <p className="text-muted-foreground mb-8">
                 Aun no te has inscrito a ningun curso. Navega por nuestros cursos
                 para comenzar!
