@@ -102,7 +102,7 @@ export function CourseCard({
                   </div>
                 )}
                 <span className="text-sm text-muted-foreground">
-                  by {course.instructor.name}
+                  {course.instructor.name}
                 </span>
               </div>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
@@ -113,7 +113,7 @@ export function CourseCard({
               progress={progress}
               variant="default"
               size="sm"
-              label="Course Progress"
+              label="Progreso actual"
             />
           )}
           
