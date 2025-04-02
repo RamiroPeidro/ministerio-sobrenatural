@@ -11,13 +11,19 @@ const convertToCSV = (data: any[]) => {
   const headers = ['Nombre', 'Email', 'Categoría', 'Fecha', 'Asistió'];
   
   // Crear filas
-  const rows = data.map(item => [
-    item.studentName || 'No disponible',
-    item.studentEmail || 'No disponible',
-    item.categoryName || 'No disponible',
-    new Date(item.date).toLocaleString('es-AR'),
-    item.attended ? 'Sí' : 'No'
-  ]);
+  const rows = data.map(item => {
+    // Formatear fecha sin comas para evitar problemas con el CSV
+    const fecha = new Date(item.date);
+    const fechaFormateada = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes().toString().padStart(2, '0')}`;
+    
+    return [
+      item.studentFirstName || 'No disponible',
+      item.studentEmail || 'No disponible',
+      item.categoryName || 'No disponible',
+      fechaFormateada,
+      item.attended ? 'true' : 'false'
+    ];
+  });
   
   // Unir encabezados y filas
   return [
@@ -93,7 +99,7 @@ export const AttendanceExport = () => {
         _id,
         date,
         attended,
-        "studentName": student->username,
+        "studentFirstName": student->firstName,
         "studentEmail": student->email,
         "studentFullName": student->fullName,
         "categoryName": category->name
@@ -188,14 +194,12 @@ export const AttendanceExport = () => {
         
         <Button
           icon={DownloadIcon}
-          text="Exportar a CSV"
+          text={isLoading ? 'Exportando...' : 'Exportar a CSV'}
           tone="primary"
           onClick={handleExport}
           disabled={isLoading}
           style={{ marginTop: '8px' }}
-        >
-          {isLoading ? 'Exportando...' : ''}
-        </Button>
+        />
       </Stack>
     </Card>
   );
