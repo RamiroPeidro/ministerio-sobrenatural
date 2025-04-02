@@ -52,7 +52,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
             className="text-white mb-8 flex items-center hover:text-primary transition-colors w-fit"
           >
             <ArrowLeft className="mr-2 h-5 w-5" />
-            Back to Courses
+            Volver a mis cursos
           </Link>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
@@ -78,7 +78,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
           {/* Main Content */}
           <div className="lg:col-span-2">
             <div className="bg-card rounded-lg p-6 mb-8 border border-border">
-              <h2 className="text-2xl font-bold mb-4">Course Content</h2>
+              <h2 className="text-2xl font-bold mb-4">Contenido del Curso</h2>
               <div className="space-y-4">
                 {course.modules?.map((module, index) => (
                   <div
@@ -87,7 +87,7 @@ export default async function CoursePage({ params }: CoursePageProps) {
                   >
                     <div className="p-4 border-b border-border">
                       <h3 className="font-medium">
-                        Module {index + 1}: {module.title}
+                        Módulo {index + 1}: {module.title}
                       </h3>
                     </div>
                     <div className="divide-y divide-border">
