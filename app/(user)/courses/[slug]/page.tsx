@@ -68,12 +68,6 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 {course.description}
               </p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 md:min-w-[300px]">
-              <div className="text-3xl font-bold text-white mb-4">
-                {course.price === 0 ? "Free" : `$${course.price}`}
-              </div>
-              <EnrollButton courseId={course._id} isEnrolled={isEnrolled} />
-            </div>
           </div>
         </div>
       </div>

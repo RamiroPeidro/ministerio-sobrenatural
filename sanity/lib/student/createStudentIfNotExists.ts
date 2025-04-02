@@ -1,5 +1,5 @@
 import groq from "groq";
-import { client } from "../adminClient";
+import { adminClient } from "../adminClient";
 import { sanityFetch } from "../live";
 
 interface CreateStudentProps {

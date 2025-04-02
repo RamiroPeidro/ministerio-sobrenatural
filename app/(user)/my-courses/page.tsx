@@ -129,12 +129,26 @@ export default async function MyCoursesPage() {
               {coursesWithProgress.map((item) => {
                 if (!item || !item.course) return null;
 
+                // Obtenemos el ID del curso para la ruta del dashboard
+                const courseId = item.course._id;
+                
+                // Ruta para el dashboard del curso (contenido/lecciones)
+                const dashboardUrl = `/dashboard/courses/${courseId}`;
+                
+                // URL de detalles del curso - usa el slug directamente
+                // El campo slug en Sanity ya viene con formato "derribando-fortalezas"
+                const slug = item.course.slug || courseId;
+                const detailsUrl = `/courses/${slug}`;
+
                 return (
                   <CourseCard
-                    key={item.course._id}
+                    key={courseId}
                     course={item.course}
                     progress={item.progress}
-                    href={`/dashboard/courses/${item.course._id}`}
+                    href={dashboardUrl}
+                    showViewButton={true}
+                    buttonText="Ver más información"
+                    buttonHref={detailsUrl}
                   />
                 );
               })}

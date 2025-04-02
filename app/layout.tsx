@@ -7,6 +7,7 @@ import { VisualEditing } from "next-sanity";
 import { DisableDraftMode } from "@/components/DisableDraftMode";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ToastProvider } from "@/components/ToastProvider";
+import {  esES } from '@clerk/localizations'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +41,7 @@ export default async function RootLayout({
           </>
         )}
 
-        <ClerkProvider>
+        <ClerkProvider localization={esES}>
           <ThemeProvider
             attribute="class"
             defaultTheme="light"

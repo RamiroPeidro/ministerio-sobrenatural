@@ -202,7 +202,7 @@ export default function AuthPage() {
                   </motion.div>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                  M. Sobrenatural
+                  Ministerio Sobrenatural
                 </h1>
               </motion.div>
 
@@ -215,10 +215,10 @@ export default function AuthPage() {
                 className="space-y-3 sm:space-y-4"
               >
                 <h2 className="text-xl sm:text-2xl font-semibold leading-tight">
-                  Plataforma de Aprendizaje del Ministerio Sobrenatural
+                  Escuela de Ministerio Sobrenatural
                 </h2>
                 <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto md:mx-0">
-                  Accede a tus cursos y mantente conectado con los encuentros virtuales semanales.
+                Campus Virtual de la Escuela de Ministerio Sobrenatural de la Iglesia del Centro.
                 </p>
               </motion.div>
 
