@@ -50,5 +50,25 @@ export const categoryType = defineType({
       type: "string",
       description: "Password for the Zoom meeting (if needed)",
     }),
+    defineField({
+      name: "nextMeetingDate",
+      title: "Next Meeting Date",
+      type: "datetime",
+      description: "Fecha y hora de la próxima reunión de Zoom (el botón solo se mostrará este día)",
+    }),
+    defineField({
+      name: "meetingDuration",
+      title: "Meeting Duration (hours)",
+      type: "number",
+      description: "Duración de la reunión en horas (por defecto 2 horas)",
+      initialValue: 2,
+    }),
+    defineField({
+      name: "isPresential",
+      title: "Es Presencial",
+      type: "boolean",
+      description: "Marcar si la próxima clase será presencial en lugar de virtual",
+      initialValue: false,
+    }),
   ],
 });

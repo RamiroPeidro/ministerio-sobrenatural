@@ -137,6 +137,18 @@ export const structure = (S: StructureBuilder) =>
         .child(
           S.list()
             .title("System Management")
-            .items([S.documentTypeListItem("category").title("Categories")])
+            .items([
+              S.documentTypeListItem("category").title("Categories"),
+              
+              // Attendance Records
+              S.listItem()
+                .title("Attendance Records")
+                .schemaType("attendance")
+                .child(
+                  S.documentTypeList("attendance")
+                    .title("Attendance Records")
+                    .defaultOrdering([{ field: "date", direction: "desc" }])
+                ),
+            ])
         ),
     ]);

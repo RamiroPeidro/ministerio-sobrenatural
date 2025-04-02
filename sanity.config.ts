@@ -13,6 +13,7 @@ import { apiVersion, dataset, projectId } from "./sanity/env";
 import { schema } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
 import { presentationTool } from "sanity/presentation";
+import { attendanceExport } from "./sanity/plugins/attendance-export";
 
 export default defineConfig({
   basePath: "/studio",
@@ -32,6 +33,8 @@ export default defineConfig({
         },
       },
     }),
+    // Plugin personalizado para exportar asistencia
+    attendanceExport(),
   ],
   beta: {
     create: {

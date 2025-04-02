@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getCourseProgress } from "@/sanity/lib/lessons/getCourseProgress";
 import { CourseCard } from "@/components/CourseCard";
 import { getStudentCategory } from "@/sanity/lib/categories/getStudentCategory";
+import { AttendanceLink } from "@/components/AttendanceLink";
 
 // Constante de respaldo para los encuentros virtuales (ya no es necesaria)
 // const DEFAULT_MEETING_LINK = "https://tu-link-de-zoom.com";
@@ -94,17 +95,14 @@ export default async function MyCoursesPage() {
                 <p className="text-sm text-muted-foreground">
                   Accede a las clases en vivo de tu categoría
                 </p>
-                <Button className="w-full md:w-auto" asChild>
-                  <a href={studentCategory.zoomLink} target="_blank" rel="noopener noreferrer">
-                    <VideoIcon className="mr-2 h-4 w-4" />
-                    Unirse a Zoom
-                    {studentCategory.zoomPassword && (
-                      <span className="ml-2 text-xs">
-                        (Contraseña: {studentCategory.zoomPassword})
-                      </span>
-                    )}
-                  </a>
-                </Button>
+                <AttendanceLink 
+                  zoomLink={studentCategory.zoomLink} 
+                  zoomPassword={studentCategory.zoomPassword}
+                  meetingId={studentCategory.name ? `${studentCategory.name.toLowerCase().replace(/\s+/g, '-')}-meeting` : undefined}
+                  nextMeetingDate={studentCategory.nextMeetingDate}
+                  meetingDuration={studentCategory.meetingDuration}
+                  isPresential={studentCategory.isPresential}
+                />
               </div>
             </CardContent>
           </Card>

@@ -6,6 +6,7 @@ import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity";
 import { DisableDraftMode } from "@/components/DisableDraftMode";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ToastProvider } from "@/components/ToastProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,6 +50,7 @@ export default async function RootLayout({
             {children}
           </ThemeProvider>
         </ClerkProvider>
+        <ToastProvider />
       </body>
     </html>
   );

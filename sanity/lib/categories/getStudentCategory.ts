@@ -34,7 +34,10 @@ export async function getStudentCategory(clerkId: string) {
       description,
       "slug": slug.current,
       zoomLink,
-      zoomPassword
+      zoomPassword,
+      nextMeetingDate,
+      meetingDuration,
+      isPresential
     }`,
     { categoryId: student.category._ref }
   );
