@@ -5,7 +5,6 @@ import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import DarkModeToggle from "./DarkModeToggle";
-import { SearchInput } from "./SearchInput";
 
 export default function Header() {
   return (
@@ -24,7 +23,7 @@ export default function Header() {
               </span>
             </Link>
 
-            <SearchInput />
+            {/* <SearchInput /> */}
           </div>
 
           <div className="flex items-center space-x-2 md:space-x-4">

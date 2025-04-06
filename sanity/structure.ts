@@ -140,14 +140,166 @@ export const structure = (S: StructureBuilder) =>
             .items([
               S.documentTypeListItem("category").title("Categories"),
               
+              // Meetings (Reuniones)
+              S.listItem()
+                .title("Reuniones")
+                .schemaType("meeting")
+                .child(
+                  S.list()
+                    .title("Reuniones")
+                    .items([
+                      // Todas las reuniones
+                      S.listItem()
+                        .title('Todas las Reuniones')
+                        .child(
+                          S.documentTypeList('meeting')
+                            .title('Todas las Reuniones')
+                            .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                        ),
+                      
+                      // Por Estado
+                      S.listItem()
+                        .title('Por Estado')
+                        .child(
+                          S.list()
+                            .title('Por Estado')
+                            .items([
+                              S.listItem()
+                                .title('Programadas')
+                                .child(
+                                  S.documentList()
+                                    .title('Reuniones Programadas')
+                                    .filter('_type == "meeting" && status == "scheduled"')
+                                    .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                                ),
+                              S.listItem()
+                                .title('En Curso')
+                                .child(
+                                  S.documentList()
+                                    .title('Reuniones En Curso')
+                                    .filter('_type == "meeting" && status == "in-progress"')
+                                    .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                                ),
+                              S.listItem()
+                                .title('Finalizadas')
+                                .child(
+                                  S.documentList()
+                                    .title('Reuniones Finalizadas')
+                                    .filter('_type == "meeting" && status == "completed"')
+                                    .defaultOrdering([{ field: 'date', direction: 'desc' }])
+                                ),
+                            ])
+                        ),
+                      
+                      // Por Categoría (poblado dinámicamente)
+                      S.listItem()
+                        .title('Por Categoría')
+                        .child(
+                          // Consultar categorías existentes
+                          S.documentTypeList('category')
+                            .title('Seleccionar Categoría')
+                            .child(categoryId => 
+                              S.documentList()
+                                .title('Reuniones de la Categoría')
+                                .filter('_type == "meeting" && category._ref == $categoryId')
+                                .params({ categoryId })
+                                .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                            )
+                        ),
+
+                      // Por Tipo
+                      S.listItem()
+                        .title('Por Tipo')
+                        .child(
+                          S.list()
+                            .title('Por Tipo')
+                            .items([
+                              S.listItem()
+                                .title('Virtuales')
+                                .child(
+                                  S.documentList()
+                                    .title('Reuniones Virtuales')
+                                    .filter('_type == "meeting" && isVirtual == true')
+                                    .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                                ),
+                              S.listItem()
+                                .title('Presenciales')
+                                .child(
+                                  S.documentList()
+                                    .title('Reuniones Presenciales')
+                                    .filter('_type == "meeting" && isVirtual == false')
+                                    .defaultOrdering([{ field: 'date', direction: 'asc' }])
+                                ),
+                            ])
+                        ),
+                    ])
+                ),
+              
               // Attendance Records
               S.listItem()
                 .title("Attendance Records")
                 .schemaType("attendance")
                 .child(
-                  S.documentTypeList("attendance")
+                  S.list()
                     .title("Attendance Records")
-                    .defaultOrdering([{ field: "date", direction: "desc" }])
+                    .items([
+                      // Todos los registros de asistencia
+                      S.listItem()
+                        .title('Todos los Registros')
+                        .child(
+                          S.documentTypeList('attendance')
+                            .title('Todos los Registros de Asistencia')
+                            .defaultOrdering([{ field: 'date', direction: 'desc' }])
+                        ),
+                      
+                      // Por Reunión
+                      S.listItem()
+                        .title('Por Reunión')
+                        .child(
+                          // Consultar reuniones
+                          S.documentTypeList('meeting')
+                            .title('Seleccionar Reunión')
+                            .child(meetingId => 
+                              S.documentList()
+                                .title('Asistencia a la Reunión')
+                                .filter('_type == "attendance" && meeting._ref == $meetingId')
+                                .params({ meetingId })
+                                .defaultOrdering([{ field: 'date', direction: 'desc' }])
+                            )
+                        ),
+                      
+                      // Por Categoría
+                      S.listItem()
+                        .title('Por Categoría')
+                        .child(
+                          // Consultar categorías
+                          S.documentTypeList('category')
+                            .title('Seleccionar Categoría')
+                            .child(categoryId => 
+                              S.documentList()
+                                .title('Asistencia por Categoría')
+                                .filter('_type == "attendance" && category._ref == $categoryId')
+                                .params({ categoryId })
+                                .defaultOrdering([{ field: 'date', direction: 'desc' }])
+                            )
+                        ),
+                      
+                      // Por Estudiante
+                      S.listItem()
+                        .title('Por Estudiante')
+                        .child(
+                          // Consultar estudiantes
+                          S.documentTypeList('student')
+                            .title('Seleccionar Estudiante')
+                            .child(studentId => 
+                              S.documentList()
+                                .title('Asistencia del Estudiante')
+                                .filter('_type == "attendance" && student._ref == $studentId')
+                                .params({ studentId })
+                                .defaultOrdering([{ field: 'date', direction: 'desc' }])
+                            )
+                        ),
+                    ])
                 ),
             ])
         ),

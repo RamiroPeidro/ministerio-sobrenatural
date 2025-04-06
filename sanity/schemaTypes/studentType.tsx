@@ -40,16 +40,49 @@ export const studentType = defineType({
       to: [{ type: "category" }],
       description: "The category to which this student belongs",
     }),
+    defineField({
+      name: "role",
+      title: "Role",
+      type: "string",
+      options: {
+        list: [
+          { title: "Student", value: "student" },
+          { title: "Admin", value: "admin" },
+          { title: "Super Admin", value: "superadmin" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "student",
+      description: "Role of the user in the system",
+    }),
+    defineField({
+      name: "fullName",
+      title: "Full Name",
+      type: "string",
+      readOnly: true,
+      description: "Generated automatically from first and last name",
+    }),
+    defineField({
+      name: "username",
+      title: "Username",
+      type: "slug",
+      options: {
+        source: "fullName",
+        maxLength: 96,
+      },
+    }),
   ],
   preview: {
     select: {
       firstName: "firstName",
       lastName: "lastName",
       imageUrl: "imageUrl",
+      role: "role",
     },
-    prepare({ firstName, lastName, imageUrl }) {
+    prepare({ firstName, lastName, imageUrl, role }) {
       return {
         title: `${firstName?.charAt(0).toUpperCase() || ""}${firstName?.slice(1) || ""} ${lastName?.charAt(0).toUpperCase() || ""}${lastName?.slice(1) || ""}`,
+        subtitle: role ? `Role: ${role}` : "Student",
         media: (
           <Image
             src={imageUrl}

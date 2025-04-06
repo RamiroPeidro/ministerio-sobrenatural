@@ -14,6 +14,7 @@ import { schema } from "./sanity/schemaTypes";
 import { structure } from "./sanity/structure";
 import { presentationTool } from "sanity/presentation";
 import { attendanceExport } from "./sanity/plugins/attendance-export";
+import { meetingsDashboard } from "./sanity/plugins/meetings-dashboard";
 
 export default defineConfig({
   basePath: "/studio",
@@ -35,6 +36,8 @@ export default defineConfig({
     }),
     // Plugin personalizado para exportar asistencia
     attendanceExport(),
+    // Dashboard para gestión de clases y reuniones
+    meetingsDashboard(),
   ],
   beta: {
     create: {

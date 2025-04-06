@@ -20,10 +20,17 @@ export const attendanceType = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "meeting",
+      title: "Reunión",
+      type: "reference",
+      to: [{ type: "meeting" }],
+      description: "Referencia a la reunión a la que asistió el estudiante",
+    }),
+    defineField({
       name: "meetingId",
       title: "Meeting ID",
       type: "string",
-      description: "Zoom meeting ID or unique identifier",
+      description: "Zoom meeting ID o identificador único (para compatibilidad)",
     }),
     defineField({
       name: "date",
@@ -57,13 +64,15 @@ export const attendanceType = defineType({
       studentUsername: "student.username",
       studentFullName: "student.fullName",
       date: "date",
+      meetingTitle: "meeting.title",
     },
-    prepare({ studentName, studentEmail, studentUsername, studentFullName, date }) {
+    prepare({ studentName, studentEmail, studentUsername, studentFullName, date, meetingTitle }) {
       // Intentar usar el nombre del estudiante en el siguiente orden: fullName, name, username, email
       const title = studentFullName || studentName || studentUsername || studentEmail || "Estudiante";
+      const meetingInfo = meetingTitle ? ` - ${meetingTitle}` : '';
       return {
         title,
-        subtitle: `Attended on ${new Date(date).toLocaleString()}`,
+        subtitle: `Asistió el ${new Date(date).toLocaleString()}${meetingInfo}`,
       };
     },
   },

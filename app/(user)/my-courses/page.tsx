@@ -9,34 +9,8 @@ import { getCourseProgress } from "@/sanity/lib/lessons/getCourseProgress";
 import { CourseCard } from "@/components/CourseCard";
 import { getStudentCategory } from "@/sanity/lib/categories/getStudentCategory";
 import { AttendanceLink } from "@/components/AttendanceLink";
-
-// Constante de respaldo para los encuentros virtuales (ya no es necesaria)
-// const DEFAULT_MEETING_LINK = "https://tu-link-de-zoom.com";
-
-function getNextTuesday(from: Date = new Date()): Date {
-  const date = new Date(from);
-  date.setHours(20, 0, 0, 0);
-  
-  while (date.getDay() !== 2 || date <= from) { // 2 = Martes
-    date.setDate(date.getDate() + 1);
-  }
-  
-  return date;
-}
-
-function isPresentialDate(date: Date): boolean {
-  // Aquí puedes agregar las fechas de encuentros presenciales
-  const presentialDates = [
-    new Date("2025-04-09T20:00:00"),
-    new Date("2025-06-11T20:00:00"),
-  ];
-
-  return presentialDates.some(presential => 
-    presential.getDate() === date.getDate() &&
-    presential.getMonth() === date.getMonth() &&
-    presential.getFullYear() === date.getFullYear()
-  );
-}
+import { getUpcomingMeetingsByCategory } from "@/sanity/lib/meetings/getMeetingsByCategory";
+import { MeetingsList } from "@/components/MeetingsList";
 
 export default async function MyCoursesPage() {
   const user = await currentUser();
@@ -47,8 +21,13 @@ export default async function MyCoursesPage() {
 
   const enrolledCourses = await getEnrolledCourses(user.id);
 
-  // Obtener la categoría del estudiante y su enlace de Zoom
+  // Obtener la categoría del estudiante
   const studentCategory = await getStudentCategory(user.id);
+
+  // Obtener próximas reuniones programadas para la categoría del estudiante
+  const upcomingMeetings = studentCategory?._id 
+    ? await getUpcomingMeetingsByCategory(studentCategory._id, 5)
+    : [];
 
   // Get progress for each enrolled course
   const coursesWithProgress = await Promise.all(
@@ -62,16 +41,6 @@ export default async function MyCoursesPage() {
     })
   );
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("es", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
-
   return (
     <div className="container mx-auto py-6 px-4 md:px-6">
       <div className="flex flex-col gap-6">
@@ -82,8 +51,16 @@ export default async function MyCoursesPage() {
           </p>
         </div>
 
-        {/* Tarjeta de Zoom de la categoría */}
-        {studentCategory?.zoomLink && (
+        {/* Mostrar el nuevo componente de reuniones */}
+        {studentCategory?._id && (
+          <MeetingsList 
+            meetings={upcomingMeetings} 
+            categoryId={studentCategory._id} 
+          />
+        )}
+
+        {/* Mostrar el componente antiguo como fallback si no hay reuniones programadas */}
+        {upcomingMeetings.length === 0 && studentCategory?.zoomLink && (
           <Card className="bg-primary/5 border-primary/20">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-medium">
