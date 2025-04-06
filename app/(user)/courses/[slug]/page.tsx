@@ -68,6 +68,19 @@ export default async function CoursePage({ params }: CoursePageProps) {
                 {course.description}
               </p>
             </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              {isEnrolled ? (
+                <Link
+                  href={`/dashboard/courses/${course._id}/lessons/${course.modules?.[0]?.lessons?.[0]?._id || ''}`}
+                  className="bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-md inline-flex items-center transition-colors"
+                >
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  Ir al curso
+                </Link>
+              ) : (
+                <EnrollButton courseId={course._id} isEnrolled={isEnrolled} />
+              )}
+            </div>
           </div>
         </div>
       </div>
