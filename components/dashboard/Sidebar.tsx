@@ -86,7 +86,7 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
             <ArrowLeft className="h-4 w-4" />
             <div className="flex items-center gap-x-2">
               <Library className="h-4 w-4" />
-              <span>Course Library</span>
+              <span>Materias</span>
             </div>
           </Link>
           <div className="space-x-2">
@@ -219,7 +219,7 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
               </Link>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>Course Library</p>
+              <p>Materias</p>
             </TooltipContent>
           </Tooltip>
 
