@@ -47,7 +47,7 @@ async function createClerkUser(firstName, lastName, email, password) {
     console.log(`Intentando crear usuario para: ${email}`);
     
     // Usar una contraseña segura única para todos los estudiantes
-    const securePassword = "MinisterioSN_2025!";
+    const securePassword = "Ministerio+123";
     
     // Generar un nombre de usuario basado en nombre y apellido (solo caracteres permitidos)
     const normalizedFirstName = firstName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
