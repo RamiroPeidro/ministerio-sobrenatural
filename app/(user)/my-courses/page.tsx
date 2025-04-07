@@ -47,42 +47,17 @@ export default async function MyCoursesPage() {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Hola, {user.username || 'Usuario'}</h1>
           <p className="text-muted-foreground">
-            Bienvenido al Ministerio Sobrenatural. Acá puedes ver todos tus cursos y próximos encuentros.
+            Acá podrás ver todas las materias y nuestros próximos LAMA.
           </p>
         </div>
 
-        {/* Mostrar el nuevo componente de reuniones */}
+        {/* Mostrar el componente de reuniones */}
         {studentCategory?._id && (
           <MeetingsList 
             meetings={upcomingMeetings} 
             categoryId={studentCategory._id} 
+            categoryName={studentCategory.name || ""}
           />
-        )}
-
-        {/* Mostrar el componente antiguo como fallback si no hay reuniones programadas */}
-        {upcomingMeetings.length === 0 && studentCategory?.zoomLink && (
-          <Card className="bg-primary/5 border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">
-                Clases en vivo - {studentCategory.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Accede a las clases en vivo de tu categoría
-                </p>
-                <AttendanceLink 
-                  zoomLink={studentCategory.zoomLink} 
-                  zoomPassword={studentCategory.zoomPassword}
-                  meetingId={studentCategory.name ? `${studentCategory.name.toLowerCase().replace(/\s+/g, '-')}-meeting` : undefined}
-                  nextMeetingDate={studentCategory.nextMeetingDate}
-                  meetingDuration={studentCategory.meetingDuration}
-                  isPresential={studentCategory.isPresential}
-                />
-              </div>
-            </CardContent>
-          </Card>
         )}
 
         <div className="container mx-auto px-4 py-8">

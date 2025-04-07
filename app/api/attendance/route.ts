@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Obtener datos del cuerpo de la solicitud
     const body = await req.json();
-    const { meetingId, categoryId = null } = body;
+    const { meetingId, categoryId = null, late = false } = body;
 
     if (!meetingId) {
       return NextResponse.json(
@@ -152,6 +152,7 @@ export async function POST(req: NextRequest) {
       },
       date: new Date().toISOString(),
       attended: true,
+      late: late, // Guardar si la asistencia fue tardía
       ip: metadata.ip,
       userAgent: metadata.userAgent,
     });

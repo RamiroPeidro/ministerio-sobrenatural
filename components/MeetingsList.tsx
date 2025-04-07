@@ -18,11 +18,52 @@ import { toast } from "sonner";
 interface MeetingsListProps {
   meetings: Meeting[];
   categoryId: string;
+  categoryName: string; // Agregamos una nueva propiedad para el nombre de la categoría
 }
 
-export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
+export function MeetingsList({ meetings, categoryId, categoryName }: MeetingsListProps) {
   const [activeMeetings, setActiveMeetings] = useState<Meeting[]>([]);
   const [now, setNow] = useState(new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attendanceRegistered, setAttendanceRegistered] = useState<Record<string, boolean>>({});
+  
+  // Verificar la asistencia registrada al cargar el componente
+  useEffect(() => {
+    // Solo verificamos si hay reuniones
+    if (meetings.length === 0) return;
+    
+    const checkExistingAttendance = async () => {
+      try {
+        const meetingIds = meetings.map(meeting => meeting._id);
+        const response = await fetch("/api/attendance/check", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            meetingIds,
+            categoryId
+          }),
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Almacenar qué reuniones ya tienen asistencia registrada
+          const registeredMeetings: Record<string, boolean> = {};
+          
+          data.attendedMeetings.forEach((meetingId: string) => {
+            registeredMeetings[meetingId] = true;
+          });
+          
+          setAttendanceRegistered(registeredMeetings);
+        }
+      } catch (error) {
+        console.error("Error al verificar asistencia existente:", error);
+      }
+    };
+    
+    checkExistingAttendance();
+  }, [meetings, categoryId]);
   
   // Este efecto actualiza la hora actual cada minuto
   useEffect(() => {
@@ -60,8 +101,24 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
     checkActiveMeetings();
   }, [meetings, now]); // Depende de now para que se actualice cada minuto
   
+  // Función para verificar si se debe registrar la asistencia (solo en los primeros 30 minutos)
+  const shouldRegisterAttendance = (meeting: Meeting) => {
+    const currentTime = new Date();
+    const meetingDate = new Date(meeting.date);
+    
+    // Ventana de asistencia (primeros 30 minutos)
+    const attendanceWindow = new Date(meetingDate);
+    attendanceWindow.setMinutes(attendanceWindow.getMinutes() + 30);
+    
+    return currentTime <= attendanceWindow;
+  };
+  
   const handleAttendance = async (meeting: Meeting) => {
     try {
+      if (isSubmitting || attendanceRegistered[meeting._id]) return;
+      
+      setIsSubmitting(true);
+      
       // Si la reunión es virtual, abrir el enlace de Zoom
       if (meeting.isVirtual) {
         // Determinar qué enlace de Zoom usar
@@ -73,32 +130,48 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
           window.open(zoomLink, "_blank");
         } else {
           toast.error("No se encontró un enlace de Zoom válido para esta reunión");
+          setIsSubmitting(false);
           return;
         }
       }
       
-      // Registrar asistencia
-      const response = await fetch("/api/attendance", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          meetingId: meeting._id,
-          categoryId: meeting.category?._ref || categoryId,
-        }),
-      });
+      // Verificar si estamos dentro de la ventana para registrar asistencia
+      const canRegisterAttendance = shouldRegisterAttendance(meeting);
       
-      if (response.ok) {
-        // Eliminamos el toast de éxito para hacer el proceso transparente
-        // toast.success("¡Asistencia registrada correctamente!");
+      if (canRegisterAttendance) {
+        // Registrar asistencia solo si estamos dentro de la ventana de tiempo permitida
+        const response = await fetch("/api/attendance", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            meetingId: meeting._id,
+            categoryId: meeting.category?._ref || categoryId
+          }),
+        });
+        
+        if (response.ok) {
+          // Actualizar el estado local para deshabilitar el botón
+          setAttendanceRegistered(prev => ({
+            ...prev,
+            [meeting._id]: true
+          }));
+          toast.success("Asistencia registrada con éxito");
+        } else {
+          const data = await response.json();
+          toast.error(data.error || "Error al registrar asistencia");
+        }
       } else {
-        const error = await response.json();
-        toast.error(`Error al registrar asistencia: ${error.message || 'Error desconocido'}`);
+        // Si es tarde, solo notificar que se unió pero sin asistencia
+        toast.info("Te has unido a la reunión. La asistencia solo se registra en los primeros 30 minutos.");
       }
+      
+      setIsSubmitting(false);
     } catch (error) {
-      console.error("Error al registrar asistencia:", error);
-      toast.error("Ocurrió un error al registrar tu asistencia");
+      console.error("Error registrando asistencia:", error);
+      toast.error("Error al procesar la asistencia");
+      setIsSubmitting(false);
     }
   };
   
@@ -108,14 +181,14 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
       <Card className="bg-primary/5 border-primary/20">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-medium">
-            Clases programadas
+            Laboratorio de Activación, Ministración y Aplicación - {categoryName}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center">
             <ClockIcon className="mr-2 h-4 w-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              No hay clases programadas actualmente
+              No hay LAMA programados actualmente
             </p>
           </div>
         </CardContent>
@@ -145,7 +218,7 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
       <Card className="bg-primary/5 border-primary/20">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-medium">
-            Próxima clase: {nextMeeting.title}
+            Próximo LAMA: {nextMeeting.title}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -161,7 +234,7 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
             <div className="flex items-center">
               <ClockIcon className="mr-2 h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                Duración: {nextMeeting.duration || 2} horas
+                Duración: {nextMeeting.duration || 2} {(nextMeeting.duration || 2) === 1 ? 'hora' : 'horas'}
               </p>
             </div>
             
@@ -194,27 +267,37 @@ export function MeetingsList({ meetings, categoryId }: MeetingsListProps) {
               </div>
             ) : isActive ? (
               <div>
-                <Button 
-                  className="w-full md:w-auto" 
-                  onClick={() => handleAttendance(nextMeeting)}
-                >
-                  {nextMeeting.isVirtual ? (
-                    <>
-                      <VideoIcon className="mr-2 h-4 w-4" />
-                      Unirse a Zoom
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircleIcon className="mr-2 h-4 w-4" />
-                      Registrar asistencia
-                    </>
-                  )}
-                </Button>
+                {nextMeeting.isVirtual ? (
+                  <Button 
+                    className="w-full md:w-auto" 
+                    onClick={() => handleAttendance(nextMeeting)}
+                    disabled={isSubmitting || attendanceRegistered[nextMeeting._id]}
+                  >
+                    {isSubmitting ? (
+                      <span>Procesando...</span>
+                    ) : attendanceRegistered[nextMeeting._id] ? (
+                      <>
+                        <CheckCircleIcon className="mr-2 h-4 w-4" />
+                        Asistencia registrada
+                      </>
+                    ) : (
+                      <>
+                        <VideoIcon className="mr-2 h-4 w-4" />
+                        Unirse a Zoom
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <div className="flex items-center">
+                    <MapPinIcon className="mr-2 h-4 w-4 text-primary" />
+                    <span className="text-sm">Clase presencial en {nextMeeting.location || 'la ubicación designada'}</span>
+                  </div>
+                )}
               </div>
             ) : isInFuture ? (
               <div className="flex items-center">
                 <CalendarClock className="mr-2 h-4 w-4 text-primary" />
-                <span className="text-sm">La clase aún no ha comenzado</span>
+                <span className="text-sm">La clase no comenzó</span>
               </div>
             ) : (
               <div className="flex items-center">

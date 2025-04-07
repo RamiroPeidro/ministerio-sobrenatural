@@ -12,12 +12,21 @@ export async function getUpcomingMeetingsByCategory(
   categoryId: string,
   limit: number = 5
 ): Promise<Meeting[]> {
-  const now = new Date().toISOString();
+  const now = new Date();
+  const nowISOString = now.toISOString();
+  
+  // Calculamos la hora límite para reuniones que ya empezaron pero aún están activas
+  // (consideramos reuniones que empezaron hace menos de 2 horas)
+  const twoHoursAgo = new Date(now);
+  twoHoursAgo.setHours(twoHoursAgo.getHours() - 2);
+  const twoHoursAgoISOString = twoHoursAgo.toISOString();
 
   try {
-    // Filtramos reuniones futuras para esta categoría, ordenadas por fecha (más cercana primero)
+    // Obtenemos tanto reuniones futuras como reuniones recientes que podrían estar en progreso
     return await client.fetch(
-      `*[_type == "meeting" && category._ref == $categoryId && date >= $now && status == "scheduled"]
+      `*[_type == "meeting" && category._ref == $categoryId && 
+        ((date >= $nowISOString && status == "scheduled") || 
+         (date >= $twoHoursAgoISOString && date < $nowISOString && status != "completed"))]
       | order(date asc)
       [0...$limit] {
         _id,
@@ -37,7 +46,7 @@ export async function getUpcomingMeetingsByCategory(
           zoomPassword
         }
       }`,
-      { categoryId, now, limit }
+      { categoryId, nowISOString, twoHoursAgoISOString, limit }
     );
   } catch (error) {
     console.error("Error fetching upcoming meetings:", error);

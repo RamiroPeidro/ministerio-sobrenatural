@@ -83,7 +83,7 @@ async function getRecentAttendance() {
       date,
       attended,
       "studentId": student->_id,
-      "studentName": student->fullName,
+      "studentName": student->firstName,
       "studentEmail": student->email,
       "meetingId": meeting->_id,
       "meetingTitle": meeting->title,
@@ -106,13 +106,13 @@ async function getAttendanceStats() {
     "attended": count(*[_type == "attendance" && attended == true]),
     "missed": count(*[_type == "attendance" && attended == false]),
     "attendanceRate": count(*[_type == "attendance" && attended == true]) / count(*[_type == "attendance"]) * 100,
-    "meetingStats": *[_type == "meeting"] | order(date desc)[0...10] {
+    "meetingStats": *[_type == "meeting" && isVirtual == true] | order(date desc)[0...20] {
       _id,
       title,
       date,
-      "totalAttendance": count(*[_type == "attendance" && meeting._ref == ^._id]),
+      "totalAttendance": count(*[_type == "student" && references(^.category._ref)]),
       "attended": count(*[_type == "attendance" && meeting._ref == ^._id && attended == true]),
-      "attendanceRate": count(*[_type == "attendance" && meeting._ref == ^._id && attended == true]) / count(*[_type == "attendance" && meeting._ref == ^._id]) * 100
+      "attendanceRate": count(*[_type == "attendance" && meeting._ref == ^._id && attended == true]) / count(*[_type == "student" && references(^.category._ref)]) * 100
     }
   }`);
   
@@ -128,10 +128,10 @@ async function getStudentAttendanceStats() {
     fullName,
     email,
     "category": category->name,
-    "totalMeetings": count(*[_type == "meeting" && references(^.category._ref)]),
+    "totalMeetings": count(*[_type == "meeting" && references(^.category._ref) && isVirtual == true]),
     "attendedMeetings": count(*[_type == "attendance" && student._ref == ^._id && attended == true]),
     "missedMeetings": count(*[_type == "attendance" && student._ref == ^._id && attended == false]),
-    "attendanceRate": count(*[_type == "attendance" && student._ref == ^._id && attended == true]) / count(*[_type == "meeting" && references(^.category._ref)]) * 100
+    "attendanceRate": count(*[_type == "attendance" && student._ref == ^._id && attended == true]) / count(*[_type == "meeting" && references(^.category._ref) && isVirtual == true]) * 100
   }`);
 }
 
