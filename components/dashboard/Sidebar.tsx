@@ -107,7 +107,7 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
           <CourseProgress
             progress={progress}
             variant="success"
-            label="Course Progress"
+            label="Progreso del curso"
           />
         </div>
       </div>
