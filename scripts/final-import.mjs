@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 const csv = require('csv-parser');
 
 // Configuración
-const CLERK_SECRET_KEY = 'sk_test_d3xnU1ZsyNaIR0CpT7DftqLvjl5TdNM874sFi9RePW';
-const API_BASE_URL = 'http://localhost:3000/api';
+const CLERK_SECRET_KEY = 'pk_live_Y2xlcmsuZXNjdWVsYXNvYnJlbmF0dXJhbGlkYy5jb20k';
+const API_BASE_URL = 'https://www.escuelasobrenaturalidc.com/api';
 const CSV_PATH = path.join(__dirname, 'estudiantes.csv');
 
 // Mapeo de nombres de año a IDs de categorías en Sanity
