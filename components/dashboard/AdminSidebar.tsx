@@ -14,7 +14,8 @@ import {
   ClipboardCheck, 
   BarChart2,
   Video,
-  ClipboardList
+  ClipboardList,
+  UserPlus
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -31,6 +32,11 @@ const adminRoutes = [
     label: "Estudiantes",
     href: "/admin/students",
     icon: Users,
+  },
+  {
+    label: "Registrar Usuario",
+    href: "/admin/register",
+    icon: UserPlus,
   },
   {
     label: "Cursos",
