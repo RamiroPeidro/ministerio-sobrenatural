@@ -29,7 +29,7 @@ export async function createStudentIfNotExists({
   }
 
   // If no student exists, create a new one
-  const newStudent = await client.create({
+  const newStudent = await adminClient.create({
     _type: "student",
     clerkId,
     email,
