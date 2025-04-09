@@ -8,12 +8,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, AlertCircle, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Switch } from "@/components/ui/switch"
 
 // Mapeo de categorías (años) como en el script
 const CATEGORIES = [
   { id: 'fdb037fd-0ec4-4024-ac55-8fa5bcce9305', name: 'Primer año' },
   { id: '5d6dcd06-38a3-476e-ba1c-c97075f6356c', name: 'Segundo año' },
-  { id: 'f3f4728b-1579-4586-a212-344c45f0b527', name: 'Tercer año' }
+  { id: 'f3f4728b-1579-4586-a212-344c45f0b527', name: 'Tercer año' },
+  { id: 'sin-categoria', name: 'Sin asignación (Director/Admin)' }
 ];
 
 export default function AdminRegisterPage() {
@@ -22,6 +24,7 @@ export default function AdminRegisterPage() {
   const [lastName, setLastName] = useState("")
   const [email, setEmail] = useState("")
   const [categoryId, setCategoryId] = useState("")
+  const [isAdmin, setIsAdmin] = useState(false)
   
   // Estados para el proceso de registro
   const [isLoading, setIsLoading] = useState(false)
@@ -102,6 +105,28 @@ export default function AdminRegisterPage() {
     }
   };
 
+  // Función para asignar rol de administrador
+  const assignAdminRole = async (userId: string) => {
+    try {
+      const response = await fetch('/api/admin/assign-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, role: 'admin' })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || `Error al asignar rol: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error: any) {
+      throw new Error(`Error al asignar rol: ${error.message}`);
+    }
+  };
+
   // Manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,12 +138,17 @@ export default function AdminRegisterPage() {
     
     try {
       // Validaciones básicas
-      if (!firstName || !lastName || !email || !categoryId) {
-        throw new Error('Todos los campos son obligatorios');
+      if (!firstName || !lastName || !email) {
+        throw new Error('Nombre, apellido y email son obligatorios');
       }
       
       if (!email.includes('@')) {
         throw new Error('Email inválido');
+      }
+      
+      // Categoría es opcional si el usuario es Director/Admin
+      if (!categoryId && categoryId !== 'sin-categoria') {
+        throw new Error('Debes seleccionar una categoría o "Sin asignación"');
       }
       
       // 1. Crear usuario en Clerk
@@ -128,8 +158,15 @@ export default function AdminRegisterPage() {
       // 2. Esperar para que el webhook tenga tiempo de procesar
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // 3. Asignar categoría
-      await assignCategory(newUserId, categoryId);
+      // 3. Asignar categoría solo si no es "sin-categoria"
+      if (categoryId !== 'sin-categoria') {
+        await assignCategory(newUserId, categoryId);
+      }
+      
+      // 4. Asignar rol de administrador si se marcó la opción
+      if (isAdmin) {
+        await assignAdminRole(newUserId);
+      }
       
       // Mostrar éxito
       setSuccess(true);
@@ -139,6 +176,7 @@ export default function AdminRegisterPage() {
       setLastName("");
       setEmail("");
       setCategoryId("");
+      setIsAdmin(false);
       
     } catch (error: any) {
       setError(error.message);
@@ -154,7 +192,7 @@ export default function AdminRegisterPage() {
         <CardHeader>
           <CardTitle>Registrar Nuevo Usuario</CardTitle>
           <CardDescription>
-            Complete el formulario para registrar un nuevo estudiante en la plataforma.
+            Complete el formulario para registrar un nuevo estudiante o administrador en la plataforma.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -175,7 +213,11 @@ export default function AdminRegisterPage() {
             <AlertDescription className="text-green-600">
               Usuario registrado correctamente con ID: {userId}.
               <br />
-              Se ha asignado la categoría seleccionada y el estudiante tendrá acceso a sus cursos.
+              {categoryId !== 'sin-categoria' ? 
+                "Se ha asignado la categoría seleccionada y el estudiante tendrá acceso a sus cursos." :
+                "El usuario ha sido registrado sin asignación a categoría."
+              }
+              {isAdmin && <><br />Se le ha asignado el rol de administrador.</>}
               <br />
               Contraseña: <strong>Ministerio+123</strong>
             </AlertDescription>
@@ -185,9 +227,9 @@ export default function AdminRegisterPage() {
         <Card>
           <form onSubmit={handleSubmit}>
             <CardHeader>
-              <CardTitle>Información del estudiante</CardTitle>
+              <CardTitle>Información del usuario</CardTitle>
               <CardDescription>
-                Ingrese los datos del nuevo estudiante que desea registrar.
+                Ingrese los datos del nuevo usuario que desea registrar.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -199,7 +241,7 @@ export default function AdminRegisterPage() {
                     value={firstName} 
                     onChange={(e) => setFirstName(e.target.value)}
                     disabled={isLoading}
-                    placeholder="Nombre del estudiante"
+                    placeholder="Nombre del usuario"
                   />
                 </div>
                 <div className="space-y-2">
@@ -209,7 +251,7 @@ export default function AdminRegisterPage() {
                     value={lastName} 
                     onChange={(e) => setLastName(e.target.value)}
                     disabled={isLoading}
-                    placeholder="Apellido del estudiante"
+                    placeholder="Apellido del usuario"
                   />
                 </div>
               </div>
@@ -245,9 +287,27 @@ export default function AdminRegisterPage() {
                   </SelectContent>
                 </Select>
                 <p className="text-sm text-muted-foreground mt-1">
-                  La categoría determina a qué cursos tendrá acceso el estudiante.
+                  {categoryId !== 'sin-categoria' ? 
+                    "La categoría determina a qué cursos tendrá acceso el estudiante." :
+                    "El usuario no tendrá acceso automático a ningún curso."
+                  }
                 </p>
               </div>
+              
+              <div className="flex items-center space-x-2 pt-2">
+                <Switch
+                  id="admin-role"
+                  checked={isAdmin}
+                  onCheckedChange={setIsAdmin}
+                  disabled={isLoading}
+                />
+                <Label htmlFor="admin-role">Asignar rol de administrador</Label>
+              </div>
+              {isAdmin && (
+                <p className="text-sm text-muted-foreground -mt-2">
+                  El usuario tendrá acceso al panel de administración y todas sus funcionalidades.
+                </p>
+              )}
             </CardContent>
             <CardFooter>
               <Button type="submit" disabled={isLoading} className="w-full">
@@ -256,7 +316,7 @@ export default function AdminRegisterPage() {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Procesando...
                   </>
-                ) : "Registrar Estudiante"}
+                ) : "Registrar Usuario"}
               </Button>
             </CardFooter>
           </form>
@@ -265,9 +325,10 @@ export default function AdminRegisterPage() {
         <div className="mt-6 text-sm text-muted-foreground">
           <p>Notas:</p>
           <ul className="list-disc pl-5 space-y-1 mt-2">
-            <li>Todos los estudiantes se crean con la contraseña predeterminada: <strong>Ministerio+123</strong></li>
+            <li>Todos los usuarios se crean con la contraseña predeterminada: <strong>Ministerio+123</strong></li>
             <li>Se generará automáticamente un nombre de usuario basado en el nombre y apellido.</li>
-            <li>El proceso asignará automáticamente los cursos correspondientes a la categoría seleccionada.</li>
+            <li>Para estudiantes regulares, seleccione su año correspondiente para asignar cursos automáticamente.</li>
+            <li>Para directores o administradores, seleccione "Sin asignación" si no deben estar asociados a un año específico.</li>
           </ul>
         </div>
       </div>
