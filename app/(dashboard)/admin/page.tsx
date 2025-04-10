@@ -4,7 +4,8 @@ import { adminClient } from "@/sanity/lib/adminClient";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Meeting, Attendance, Student, Category } from "@/types/sanity";
-import { CalendarPlus, Users, CheckCircle, Calendar, BarChart, BookOpen } from "lucide-react";
+import { CalendarPlus, Users, CheckCircle, Calendar, BarChart, BookOpen, FilterX } from "lucide-react";
+import PerformanceFilterSection from "@/components/dashboard/PerformanceFilterSection";
 
 // Verificar si un usuario es administrador
 async function isAdmin(userId: string) {
@@ -46,6 +47,34 @@ async function getStatistics() {
   };
 }
 
+// Obtener todas las categorías para filtros
+async function getCategories() {
+  return await adminClient.fetch<Category[]>(
+    `*[_type == "category"] | order(name) { _id, name, description }`
+  );
+}
+
+// Obtener datos estructurados de estudiantes
+async function getStudentPerformanceData() {
+  return await adminClient.fetch<any[]>(
+    `*[_type == "student"] {
+      _id,
+      firstName,
+      lastName,
+      fullName,
+      email,
+      "categoryId": category._ref,
+      "categoryName": category->name,
+      "totalMeetings": count(*[_type == "meeting" && references(^.category._ref)]),
+      "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true]),
+      "attendanceRate": count(*[_type == "attendance" && student._ref == ^._id && attended == true]) / max(1, count(*[_type == "meeting" && references(^.category._ref)])) * 100,
+      "totalLessons": count(*[_type == "lesson" && references(^.category._ref)]),
+      "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id]),
+      "academicProgress": count(*[_type == "lessonCompletion" && student._ref == ^._id]) / max(1, count(*[_type == "lesson" && references(^.category._ref)])) * 100
+    }`
+  );
+}
+
 export default async function AdminDashboardPage() {
   const user = await currentUser();
   
@@ -62,6 +91,12 @@ export default async function AdminDashboardPage() {
   
   // Obtener estadísticas
   const stats = await getStatistics();
+  
+  // Obtener categorías para filtros
+  const categories = await getCategories();
+  
+  // Obtener datos de rendimiento de estudiantes
+  const studentsPerformance = await getStudentPerformanceData();
   
   // Definir las tarjetas para cada sección del panel
   const adminSections = [
@@ -126,7 +161,7 @@ export default async function AdminDashboardPage() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {adminSections.map((section, index) => (
           <Link 
             key={index} 
@@ -159,6 +194,22 @@ export default async function AdminDashboardPage() {
             </Card>
           </Link>
         ))}
+      </div>
+      
+      {/* Nueva sección de filtrado y visualización de rendimiento */}
+      <div className="mt-12 border-t pt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Rendimiento de Estudiantes</h2>
+          <div className="flex items-center text-muted-foreground">
+            <FilterX className="h-4 w-4 mr-2" />
+            <span>Filtra por asistencia, progreso académico y año</span>
+          </div>
+        </div>
+        
+        <PerformanceFilterSection 
+          studentsData={studentsPerformance}
+          categories={categories}
+        />
       </div>
     </div>
   );
