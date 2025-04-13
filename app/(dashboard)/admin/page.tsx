@@ -56,7 +56,46 @@ async function getCategories() {
 
 // Obtener datos estructurados de estudiantes
 async function getStudentPerformanceData() {
-  return await adminClient.fetch<any[]>(
+  // Obtener el número total de reuniones por categoría primero
+  const categoriesResult = await adminClient.fetch<{categories: Array<{_id: string, meetingCount: number}>}>(
+    `{
+      "categories": *[_type == "category"] {
+        _id,
+        "meetingCount": count(*[_type == "meeting" && references(^._id)])
+      }
+    }`
+  );
+  
+  const categoriesMap = new Map<string, number>();
+  if (categoriesResult && categoriesResult.categories) {
+    categoriesResult.categories.forEach((cat: {_id: string, meetingCount: number}) => {
+      if (cat._id) {
+        categoriesMap.set(cat._id, cat.meetingCount || 0);
+      }
+    });
+  }
+  
+  // Obtener el número total de lecciones por categoría
+  const lessonsResult = await adminClient.fetch<{categories: Array<{_id: string, lessonCount: number}>}>(
+    `{
+      "categories": *[_type == "category"] {
+        _id,
+        "lessonCount": count(*[_type == "lesson" && references(^._id)])
+      }
+    }`
+  );
+  
+  const lessonsMap = new Map<string, number>();
+  if (lessonsResult && lessonsResult.categories) {
+    lessonsResult.categories.forEach((cat: {_id: string, lessonCount: number}) => {
+      if (cat._id) {
+        lessonsMap.set(cat._id, cat.lessonCount || 0);
+      }
+    });
+  }
+  
+  // Obtener datos de estudiantes
+  const students = await adminClient.fetch<any[]>(
     `*[_type == "student"] {
       _id,
       firstName,
@@ -65,14 +104,27 @@ async function getStudentPerformanceData() {
       email,
       "categoryId": category._ref,
       "categoryName": category->name,
-      "totalMeetings": count(*[_type == "meeting" && references(^.category._ref)]),
       "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true]),
-      "attendanceRate": count(*[_type == "attendance" && student._ref == ^._id && attended == true]) / max(1, count(*[_type == "meeting" && references(^.category._ref)])) * 100,
-      "totalLessons": count(*[_type == "lesson" && references(^.category._ref)]),
-      "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id]),
-      "academicProgress": count(*[_type == "lessonCompletion" && student._ref == ^._id]) / max(1, count(*[_type == "lesson" && references(^.category._ref)])) * 100
+      "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id])
     }`
   );
+  
+  // Calcular los porcentajes nosotros mismos para evitar el uso de max()
+  return students.map((student: any) => {
+    const totalMeetings = categoriesMap.get(student.categoryId) || 1; // Evitar división por cero
+    const totalLessons = lessonsMap.get(student.categoryId) || 1; // Evitar división por cero
+    
+    const attendanceRate = (student.attendedCount / totalMeetings) * 100;
+    const academicProgress = (student.completedLessons / totalLessons) * 100;
+    
+    return {
+      ...student,
+      totalMeetings,
+      attendanceRate: isNaN(attendanceRate) ? 0 : attendanceRate,
+      totalLessons,
+      academicProgress: isNaN(academicProgress) ? 0 : academicProgress
+    };
+  });
 }
 
 export default async function AdminDashboardPage() {
