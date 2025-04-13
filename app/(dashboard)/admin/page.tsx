@@ -61,7 +61,7 @@ async function getStudentPerformanceData() {
     `{
       "categories": *[_type == "category"] {
         _id,
-        "meetingCount": count(*[_type == "meeting" && references(^._id) && modality == "virtual"])
+        "meetingCount": count(*[_type == "meeting" && references(^._id) && isVirtual == true])
       }
     }`
   );
