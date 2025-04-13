@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const csv = require('csv-parser');
 
 // Configuración
-const CLERK_SECRET_KEY = 'sk_live_TeEQUKQBkybeUqJ3MjzFj6oU9SuUld766HnOj3XtSy';
+const CLERK_SECRET_KEY = '';
 const API_BASE_URL = 'http://localhost:3000/api';
 const CSV_PATH = path.join(__dirname, 'estudiantes.csv');
 
