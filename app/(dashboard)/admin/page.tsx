@@ -56,12 +56,12 @@ async function getCategories() {
 
 // Obtener datos estructurados de estudiantes
 async function getStudentPerformanceData() {
-  // Obtener el número total de reuniones por categoría primero
+  // Obtener el número total de reuniones virtuales por categoría
   const categoriesResult = await adminClient.fetch<{categories: Array<{_id: string, meetingCount: number}>}>(
     `{
       "categories": *[_type == "category"] {
         _id,
-        "meetingCount": count(*[_type == "meeting" && references(^._id)])
+        "meetingCount": count(*[_type == "meeting" && references(^._id) && modality == "virtual"])
       }
     }`
   );
@@ -80,7 +80,7 @@ async function getStudentPerformanceData() {
     `{
       "categories": *[_type == "category"] {
         _id,
-        "lessonCount": count(*[_type == "lesson" && references(^._id)])
+        "lessonCount": count(*[_type == "course" && references(^._id)].modules[]->lessons[])
       }
     }`
   );
@@ -104,7 +104,7 @@ async function getStudentPerformanceData() {
       email,
       "categoryId": category._ref,
       "categoryName": category->name,
-      "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true]),
+      "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true && meeting->modality == "virtual"]),
       "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id])
     }`
   );

@@ -152,9 +152,10 @@ export default function PerformanceFilterSection({
     }
   };
   
-  // Obtener la cantidad de estudiantes filtrados
+  // Obtener la cantidad de estudiantes filtrados y activos
+  const activeStudents = studentsData.filter(student => student.totalMeetings > 0);
   const filteredCount = filteredStudents.length;
-  const totalCount = studentsData.length;
+  const totalCount = activeStudents.length;
   
   return (
     <div className="space-y-6">
@@ -251,7 +252,7 @@ export default function PerformanceFilterSection({
           <div className="flex items-center justify-between mt-6 text-sm text-muted-foreground">
             <div className="flex items-center">
               <Filter className="h-4 w-4 mr-2" />
-              <span>Mostrando {filteredCount} de {totalCount} estudiantes</span>
+              <span>Mostrando {filteredCount} de {totalCount} estudiantes activos</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -314,50 +315,39 @@ export default function PerformanceFilterSection({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                    No se encontraron estudiantes con los criterios seleccionados
+              {filteredStudents.map((student) => (
+                <TableRow key={student._id}>
+                  <TableCell>
+                    <div>
+                      <div className="font-medium">{student.fullName}</div>
+                      <div className="text-sm text-muted-foreground">{student.email}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{student.categoryName}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <span>{Math.round(student.attendanceRate)}%</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({student.attendedCount}/{student.totalMeetings})
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <span>{Math.round(student.academicProgress)}%</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({student.completedLessons}/{student.totalLessons})
+                      </span>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ) : (
-                filteredStudents.map((student) => (
-                  <TableRow key={student._id}>
-                    <TableCell className="font-medium">
-                      <div>
-                        {student.firstName} {student.lastName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {student.email}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {student.categoryName || "Sin asignar"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <div 
-                          className={`w-2 h-2 rounded-full ${getColorForRate(student.attendanceRate)}`}
-                        />
-                        <span>{Math.round(student.attendanceRate)}%</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {student.attendedCount} / {student.totalMeetings} clases
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <div 
-                          className={`w-2 h-2 rounded-full ${getColorForRate(student.academicProgress)}`}
-                        />
-                        <span>{Math.round(student.academicProgress)}%</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {student.completedLessons} / {student.totalLessons} lecciones
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+              ))}
+              {filteredStudents.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                    No se encontraron estudiantes con los filtros seleccionados
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>
@@ -369,8 +359,7 @@ export default function PerformanceFilterSection({
 
 // Función auxiliar para obtener colores según porcentaje
 function getColorForRate(rate: number): string {
-  if (rate >= 85) return "bg-green-500";
-  if (rate >= 70) return "bg-yellow-500";
-  if (rate >= 50) return "bg-orange-500";
-  return "bg-red-500";
+  if (rate >= 75) return 'text-green-600 dark:text-green-400';
+  if (rate >= 50) return 'text-yellow-600 dark:text-yellow-400';
+  return 'text-red-600 dark:text-red-400';
 }
