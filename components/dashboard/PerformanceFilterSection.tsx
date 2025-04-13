@@ -177,7 +177,7 @@ export default function PerformanceFilterSection({
               </div>
               <div className="pt-4">
                 <Slider 
-                  value={[minAttendance, maxAttendance]}
+                  defaultValue={[minAttendance, maxAttendance]}
                   min={0}
                   max={100}
                   step={5}
@@ -198,7 +198,7 @@ export default function PerformanceFilterSection({
               </div>
               <div className="pt-4">
                 <Slider 
-                  value={[minProgress, maxProgress]}
+                  defaultValue={[minProgress, maxProgress]}
                   min={0}
                   max={100}
                   step={5}
@@ -217,7 +217,7 @@ export default function PerformanceFilterSection({
                 onValueChange={setSelectedCategory}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar año" />
+                  <SelectValue defaultValue="all">Seleccionar año</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos los años</SelectItem>
