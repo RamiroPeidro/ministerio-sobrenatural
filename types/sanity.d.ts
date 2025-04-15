@@ -115,4 +115,5 @@ export type Attendance = {
   attended: boolean;
   ip?: string;
   userAgent?: string;
+  lastAccessDate?: string;
 };

@@ -104,7 +104,7 @@ async function getStudentPerformanceData() {
       email,
       "categoryId": category._ref,
       "categoryName": category->name,
-      "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true && meeting->modality == "virtual"]),
+      "attendedCount": count(*[_type == "attendance" && student._ref == ^._id && attended == true && meeting->isVirtual == true]),
       "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id])
     }`
   );

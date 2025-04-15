@@ -32,7 +32,22 @@ export async function registerMeetingAttendance(
 
     if (existingAttendance) {
       console.log("La asistencia ya ha sido registrada anteriormente");
-      return existingAttendance;
+      // En lugar de crear un nuevo registro, actualizamos el existente con la última hora de acceso
+      const updatedAttendance = await adminClient
+        .patch(existingAttendance._id)
+        .set({
+          lastAccessDate: new Date().toISOString(),
+          ip: metadata.ip || "unknown",
+          userAgent: metadata.userAgent || "unknown"
+        })
+        .commit();
+
+      return {
+        ...existingAttendance,
+        lastAccessDate: updatedAttendance.lastAccessDate,
+        ip: updatedAttendance.ip,
+        userAgent: updatedAttendance.userAgent
+      };
     }
 
     // Obtener información de la reunión
