@@ -115,7 +115,7 @@ export function MeetingsList({ meetings, categoryId, categoryName }: MeetingsLis
   
   const handleAttendance = async (meeting: Meeting) => {
     try {
-      if (isSubmitting || attendanceRegistered[meeting._id]) return;
+      if (isSubmitting) return;
       
       setIsSubmitting(true);
       
@@ -128,6 +128,13 @@ export function MeetingsList({ meetings, categoryId, categoryName }: MeetingsLis
           
         if (zoomLink) {
           window.open(zoomLink, "_blank");
+          
+          // Si ya se registró la asistencia, solo mostrar mensaje informativo
+          if (attendanceRegistered[meeting._id]) {
+            toast.info("Ingresando nuevamente al LAMA");
+            setIsSubmitting(false);
+            return;
+          }
         } else {
           toast.error("No se encontró un enlace de Zoom válido para esta reunión");
           setIsSubmitting(false);
