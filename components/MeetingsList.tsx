@@ -278,19 +278,14 @@ export function MeetingsList({ meetings, categoryId, categoryName }: MeetingsLis
                   <Button 
                     className="w-full md:w-auto" 
                     onClick={() => handleAttendance(nextMeeting)}
-                    disabled={isSubmitting || attendanceRegistered[nextMeeting._id]}
+                    disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <span>Procesando...</span>
-                    ) : attendanceRegistered[nextMeeting._id] ? (
-                      <>
-                        <CheckCircleIcon className="mr-2 h-4 w-4" />
-                        Asistencia registrada
-                      </>
                     ) : (
                       <>
                         <VideoIcon className="mr-2 h-4 w-4" />
-                        Unirse a Zoom
+                        {attendanceRegistered[nextMeeting._id] ? 'Volver a Zoom' : 'Unirse a Zoom'}
                       </>
                     )}
                   </Button>
