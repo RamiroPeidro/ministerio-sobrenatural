@@ -84,6 +84,11 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
       lastUpdated: new Date().toISOString()
     };
     localStorage.setItem("videoProgress", JSON.stringify(videoProgress));
+    console.log("[DEBUG] Guardando progreso:", {
+      lessonId,
+      currentTime,
+      videoProgress
+    });
   }, [lessonId]);
 
   // Función para obtener el progreso guardado
@@ -151,13 +156,17 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
         
         // Restaurar el progreso guardado si existe
         const savedProgress = getSavedProgress();
+        console.log("[DEBUG] Progreso guardado:", savedProgress);
         if (savedProgress?.currentTime) {
+          console.log("[DEBUG] Restaurando a tiempo:", savedProgress.currentTime);
           player.setCurrentTime(savedProgress.currentTime);
         }
 
-        // Guardar progreso cada 10 segundos
-        player.on('timeupdate', (data: { seconds: number }) => {
-          if (data.seconds % 10 === 0) { // Solo guardar cada 10 segundos
+        // Guardar progreso usando el evento timeupdate
+        player.on('timeupdate', (data: { seconds: number, duration: number }) => {
+          console.log("[DEBUG] timeupdate:", data);
+          if (Math.floor(data.seconds) % 10 === 0) { // Solo guardar cada 10 segundos
+            console.log("[DEBUG] Guardando progreso");
             saveProgress(data.seconds);
           }
         });
@@ -177,6 +186,7 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
         try {
           playerRef.current.off('ready');
           playerRef.current.off('ended');
+          playerRef.current.off('timeupdate');
         } catch {
           // Ignorar errores al limpiar
         }
