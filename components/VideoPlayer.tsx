@@ -17,8 +17,11 @@ declare global {
 
 // Interfaz para la instancia del reproductor
 interface PlayerInstance {
-  on: (event: string, callback: () => void) => void;
+  on: (event: string, callback: (data?: any) => void) => void;
   off: (event: string) => void;
+  getCurrentTime: (callback: (seconds: number) => void) => void;
+  setCurrentTime: (seconds: number) => void;
+  getDuration: (callback: (seconds: number) => void) => void;
 }
 
 interface VideoPlayerProps {
@@ -71,6 +74,26 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
   }, [url]);
 
   // Función para marcar el video como completado
+  // Función para guardar el progreso del video
+  const saveProgress = useCallback((currentTime: number) => {
+    if (!lessonId) return;
+    
+    const videoProgress = JSON.parse(localStorage.getItem("videoProgress") || "{}");
+    videoProgress[lessonId] = {
+      currentTime,
+      lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem("videoProgress", JSON.stringify(videoProgress));
+  }, [lessonId]);
+
+  // Función para obtener el progreso guardado
+  const getSavedProgress = useCallback(() => {
+    if (!lessonId) return null;
+    
+    const videoProgress = JSON.parse(localStorage.getItem("videoProgress") || "{}");
+    return videoProgress[lessonId] || null;
+  }, [lessonId]);
+
   const markAsCompleted = useCallback(() => {
     if (!lessonId) return;
     
@@ -126,9 +149,21 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
       player.on('ready', () => {
         setIsLoading(false);
         
-        // Registramos solo el evento 'ended'
+        // Restaurar el progreso guardado si existe
+        const savedProgress = getSavedProgress();
+        if (savedProgress?.currentTime) {
+          player.setCurrentTime(savedProgress.currentTime);
+        }
+
+        // Guardar progreso cada 10 segundos
+        player.on('timeupdate', (data: { seconds: number }) => {
+          if (data.seconds % 10 === 0) { // Solo guardar cada 10 segundos
+            saveProgress(data.seconds);
+          }
+        });
+
+        // Mantener la lógica original de completado
         player.on('ended', () => {
-          // Solo registramos un log para el evento ended
           console.log("VIDEO TERMINADO - Bunny.net");
           markAsCompleted();
         });
@@ -148,9 +183,15 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
         playerRef.current = null;
       }
     };
-  }, [isBunnyUrl, isPlayerJsLoaded, url, lessonId, markAsCompleted]);
+  }, [isBunnyUrl, isPlayerJsLoaded, url, lessonId, markAsCompleted, saveProgress, getSavedProgress]);
 
   // Manejador para ReactPlayer
+  const handleReactPlayerProgress = ({ playedSeconds }: { playedSeconds: number }) => {
+    if (Math.floor(playedSeconds) % 10 === 0) { // Guardar cada 10 segundos
+      saveProgress(playedSeconds);
+    }
+  };
+
   const handleReactPlayerEnded = () => {
     console.log("VIDEO TERMINADO - ReactPlayer");
     markAsCompleted();
@@ -185,6 +226,8 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
           controls
           playing={false}
           onEnded={handleReactPlayerEnded}
+          onProgress={handleReactPlayerProgress}
+          progressInterval={1000}
         />
       )}
     </div>
