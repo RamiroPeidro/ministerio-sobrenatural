@@ -30,7 +30,20 @@ export function LessonCompleteButton({
   const [isCompleted, setIsCompleted] = useState<boolean | null>(null);
   const [isPendingTransition, startTransition] = useTransition();
   const [videoWatched, setVideoWatched] = useState(false);
+  const [isLowHeight, setIsLowHeight] = useState(false);
   const router = useRouter();
+
+  // Detectar altura de pantalla para UI adaptativa
+  useEffect(() => {
+    const checkHeight = () => {
+      // Pantallas con menos de 700px de altura son consideradas "bajas"
+      setIsLowHeight(window.innerHeight < 700);
+    };
+
+    checkHeight();
+    window.addEventListener('resize', checkHeight);
+    return () => window.removeEventListener('resize', checkHeight);
+  }, []);
 
   // Verificar si el video ha sido visto completamente
   useEffect(() => {
@@ -91,36 +104,55 @@ export function LessonCompleteButton({
   const isLoading = isCompleted === null || isPendingTransition;
   const canMarkComplete = videoWatched || isCompleted;
 
+  // Configuración adaptativa según altura de pantalla
+  const containerClasses = cn(
+    "fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t z-50 lg:left-[60px] xl:left-96",
+    isLowHeight ? "p-1" : "p-2 sm:p-4"
+  );
+
+  const contentClasses = cn(
+    "max-w-4xl mx-auto flex items-center justify-between",
+    isLowHeight ? "gap-2" : "gap-2 sm:gap-4",
+    isLowHeight ? "flex-row" : "flex-col sm:flex-row"
+  );
+
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-background/95 backdrop-blur-sm border-t z-50 lg:left-[60px] xl:left-96">
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
-        <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm font-medium truncate">
+    <div className={containerClasses}>
+      <div className={contentClasses}>
+        <div className={cn("flex-1 min-w-0", isLowHeight && "max-w-[60%]")}>
+          <p className={cn("font-medium truncate", isLowHeight ? "text-xs" : "text-xs sm:text-sm")}>
             {isCompleted
               ? "Lección completada!"
               : videoWatched
-              ? "¿Listo para completar esta lección?"
+              ? "¿Listo para completar?"
+              : isLowHeight
+              ? "Ver video completo"
               : "Necesitas ver el video completamente"}
           </p>
-          <p className="text-xs sm:text-sm text-muted-foreground truncate">
-            {isCompleted
-              ? "Puedes marcarla como incompleta si necesitas revisarla."
-              : videoWatched
-              ? "Marca como completada cuando hayas terminado."
-              : "Mira el video hasta el final para poder marcar la lección como completada."}
-          </p>
+          {!isLowHeight && (
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+              {isCompleted
+                ? "Puedes marcarla como incompleta si necesitas revisarla."
+                : videoWatched
+                ? "Marca como completada cuando hayas terminado."
+                : "Mira el video hasta el final para poder marcar la lección como completada."}
+            </p>
+          )}
         </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div>
+              <div className={cn(isLowHeight && "flex-shrink-0")}>
                 <Button
                   onClick={handleToggle}
                   disabled={isPending || isLoading || !canMarkComplete}
-                  size="sm"
+                  size={isLowHeight ? "sm" : "sm"}
                   variant="default"
                   className={cn(
-                    "w-full sm:min-w-[160px] sm:w-auto text-xs sm:text-sm transition-all duration-200 ease-in-out",
+                    "transition-all duration-200 ease-in-out",
+                    isLowHeight 
+                      ? "px-3 py-1 text-xs min-w-[100px]" 
+                      : "w-full sm:min-w-[160px] sm:w-auto text-xs sm:text-sm",
                     isCompleted
                       ? "bg-red-600 hover:bg-red-700 text-white"
                       : videoWatched
@@ -130,38 +162,43 @@ export function LessonCompleteButton({
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Actualizando...
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      {isLowHeight ? "..." : "Actualizando..."}
                     </>
                   ) : isPending ? (
                     <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {isCompleted ? "Desmarcando..." : "Completando..."}
+                      <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      {isLowHeight ? "..." : isCompleted ? "Desmarcando..." : "Completando..."}
                     </>
                   ) : isCompleted ? (
                     <>
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Marcar como No Completada
+                      <XCircle className="h-3 w-3 mr-1" />
+                      {isLowHeight ? "Desmarcar" : "Marcar como No Completada"}
                     </>
                   ) : videoWatched ? (
                     <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Marcar como Completada
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      {isLowHeight ? "Completar" : "Marcar como Completada"}
                     </>
                   ) : (
                     <>
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      Primero completa el video
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {isLowHeight ? "Ver video" : "Primero completa el video"}
                     </>
                   )}
                 </Button>
               </div>
             </TooltipTrigger>
-            {!videoWatched && !isCompleted && (
-              <TooltipContent>
-                <p>Debes ver el video completo antes de marcar la lección como completada</p>
-              </TooltipContent>
-            )}
+            <TooltipContent>
+              <p>
+                {!videoWatched && !isCompleted 
+                  ? "Debes ver el video completo antes de marcar la lección como completada"
+                  : isCompleted
+                  ? "Marcar lección como incompleta"
+                  : "Marcar lección como completada"
+                }
+              </p>
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>

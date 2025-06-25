@@ -45,22 +45,36 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
   const { isOpen, toggle, close } = useSidebar();
   const [isMounted, setIsMounted] = useState(false);
   const [openModules, setOpenModules] = useState<string[]>([]);
+  const [isLowHeight, setIsLowHeight] = useState(false);
 
   useEffect(() => {
-    if (pathname && course?.modules) {
-      const currentModuleId = course.modules.find((module) =>
-        module.lessons?.some(
-          (lesson) =>
-            pathname ===
-            `/dashboard/courses/${course._id}/lessons/${lesson._id}`
-        )
-      )?._id;
+    const checkHeight = () => {
+      setIsLowHeight(window.innerHeight < 700);
+    };
 
-      if (currentModuleId && !openModules.includes(currentModuleId)) {
-        setOpenModules((prev) => [...prev, currentModuleId]);
+    checkHeight();
+    window.addEventListener('resize', checkHeight);
+    return () => window.removeEventListener('resize', checkHeight);
+  }, []);
+
+  useEffect(() => {
+    if (course?.modules?.length) {
+      const currentModuleIds: string[] = [];
+      
+      course.modules.forEach((module) => {
+        const hasActiveLession = module.lessons?.some((lesson) =>
+          pathname.includes(lesson._id)
+        );
+        if (hasActiveLession) {
+          currentModuleIds.push(module._id);
+        }
+      });
+      
+      if (currentModuleIds.length > 0) {
+        setOpenModules(currentModuleIds);
       }
     }
-  }, [pathname, course, openModules]);
+  }, [pathname, course?.modules]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -112,7 +126,10 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
         </div>
       </div>
       <ScrollArea className="flex-1">
-        <div className="p-2 lg:p-4 pb-24">
+        <div className={cn(
+          "p-2 lg:p-4",
+          isLowHeight ? "pb-16" : "pb-24"
+        )}>
           <Accordion
             type="multiple"
             className="w-full space-y-4"
