@@ -92,17 +92,17 @@ export function LessonCompleteButton({
   const canMarkComplete = videoWatched || isCompleted;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-sm border-t z-50">
-      <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <p className="text-sm font-medium">
+    <div className="fixed bottom-0 left-0 right-0 p-2 sm:p-4 bg-background/95 backdrop-blur-sm border-t z-50 lg:left-[60px] xl:left-96">
+      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs sm:text-sm font-medium truncate">
             {isCompleted
               ? "Lección completada!"
               : videoWatched
               ? "¿Listo para completar esta lección?"
               : "Necesitas ver el video completamente"}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">
             {isCompleted
               ? "Puedes marcarla como incompleta si necesitas revisarla."
               : videoWatched
@@ -117,10 +117,10 @@ export function LessonCompleteButton({
                 <Button
                   onClick={handleToggle}
                   disabled={isPending || isLoading || !canMarkComplete}
-                  size="lg"
+                  size="sm"
                   variant="default"
                   className={cn(
-                    "min-w-[200px] transition-all duration-200 ease-in-out",
+                    "w-full sm:min-w-[160px] sm:w-auto text-xs sm:text-sm transition-all duration-200 ease-in-out",
                     isCompleted
                       ? "bg-red-600 hover:bg-red-700 text-white"
                       : videoWatched

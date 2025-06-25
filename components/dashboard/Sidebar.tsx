@@ -112,7 +112,7 @@ export function Sidebar({ course, completedLessons = [] }: SidebarProps) {
         </div>
       </div>
       <ScrollArea className="flex-1">
-        <div className="p-2 lg:p-4">
+        <div className="p-2 lg:p-4 pb-24">
           <Accordion
             type="multiple"
             className="w-full space-y-4"
