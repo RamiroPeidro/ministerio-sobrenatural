@@ -6,16 +6,17 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DarkModeToggle from "../DarkModeToggle";
-import { 
-  Home, 
-  Users, 
-  GraduationCap, 
-  Calendar, 
-  ClipboardCheck, 
+import {
+  Home,
+  Users,
+  GraduationCap,
+  Calendar,
+  ClipboardCheck,
   BarChart2,
   Video,
   ClipboardList,
-  UserPlus
+  UserPlus,
+  FileSpreadsheet
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -57,6 +58,11 @@ const adminRoutes = [
     label: "Progreso Académico",
     href: "/admin/progress",
     icon: BarChart2,
+  },
+  {
+    label: "Exportar Datos",
+    href: "/admin/export",
+    icon: FileSpreadsheet,
   },
 ];
 
