@@ -1,4 +1,3 @@
-import { adminClient } from "@/sanity/lib/adminClient";
 import { formatDate } from "@/lib/utils";
 
 // Tipos para los datos de exportación
@@ -103,50 +102,36 @@ export const exportAllAttendanceHistory = async (
   onProgress?: (current: number, total: number) => void
 ): Promise<void> => {
   try {
-    // Primero obtener el conteo total para mostrar progreso
-    const totalCount = await adminClient.fetch<number>(
-      `count(*[_type == "attendance"])`
-    );
+    if (onProgress) onProgress(0, 1);
 
-    if (onProgress) onProgress(0, totalCount);
+    // Llamar a la API route que maneja la exportación en el servidor
+    const response = await fetch('/api/export/attendance');
 
-    // Obtener todos los registros de asistencia sin límite
-    const attendanceData = await adminClient.fetch<AttendanceRecord[]>(`
-      *[_type == "attendance"] | order(date desc) {
-        _id,
-        date,
-        attended,
-        "studentFirstName": student->firstName,
-        "studentFullName": student->fullName,
-        "studentEmail": student->email,
-        "categoryName": category->name,
-        "meetingTitle": meeting->title,
-        "meetingType": meeting->isVirtual ? "Virtual" : "Presencial",
-        ip,
-        userAgent
-      }
-    `);
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
 
-    if (onProgress) onProgress(totalCount, totalCount);
+    // Obtener el archivo CSV como blob
+    const blob = await response.blob();
 
-    // Formatear datos para CSV
-    const formattedData = attendanceData.map(record => ({
-      Estudiante: record.studentFullName || record.studentFirstName || 'N/A',
-      Email: record.studentEmail || 'N/A',
-      Categoría: record.categoryName || 'N/A',
-      Reunión: record.meetingTitle || 'N/A',
-      Tipo: record.meetingType || 'N/A',
-      Fecha: record.date ? formatDate(record.date) : 'N/A',
-      Asistió: record.attended ? 'Sí' : 'No',
-      IP: record.ip || 'N/A',
-      UserAgent: record.userAgent || 'N/A'
-    }));
+    if (onProgress) onProgress(1, 1);
 
-    const headers = ['Estudiante', 'Email', 'Categoría', 'Reunión', 'Tipo', 'Fecha', 'Asistió', 'IP', 'UserAgent'];
-    const csvContent = convertToCSV(formattedData, headers);
-    const filename = generateFilename('asistencias-historico-completo');
+    // Extraer el nombre del archivo del header Content-Disposition
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+      : generateFilename('asistencias-historico-completo');
 
-    downloadCSV(csvContent, filename);
+    // Crear URL temporal y descargar
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
   } catch (error) {
     console.error('Error al exportar historial de asistencias:', error);
@@ -159,46 +144,36 @@ export const exportAllAcademicProgress = async (
   onProgress?: (current: number, total: number) => void
 ): Promise<void> => {
   try {
-    // Obtener conteo total
-    const totalCount = await adminClient.fetch<number>(
-      `count(*[_type == "lessonCompletion"])`
-    );
+    if (onProgress) onProgress(0, 1);
 
-    if (onProgress) onProgress(0, totalCount);
+    // Llamar a la API route que maneja la exportación en el servidor
+    const response = await fetch('/api/export/progress');
 
-    // Obtener todos los registros de completación de lecciones
-    const progressData = await adminClient.fetch<LessonCompletionRecord[]>(`
-      *[_type == "lessonCompletion"] | order(completedAt desc) {
-        _id,
-        completedAt,
-        "studentFirstName": student->firstName,
-        "studentFullName": student->fullName,
-        "studentEmail": student->email,
-        "courseTitle": course->title,
-        "moduleTitle": module->title,
-        "lessonTitle": lesson->title,
-        "enrolledAt": *[_type == "enrollment" && student._ref == ^.student._ref && course._ref == ^.course._ref][0].enrolledAt
-      }
-    `);
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
 
-    if (onProgress) onProgress(totalCount, totalCount);
+    // Obtener el archivo CSV como blob
+    const blob = await response.blob();
 
-    // Formatear datos para CSV
-    const formattedData = progressData.map(record => ({
-      Estudiante: record.studentFullName || record.studentFirstName || 'N/A',
-      Email: record.studentEmail || 'N/A',
-      Curso: record.courseTitle || 'N/A',
-      Módulo: record.moduleTitle || 'N/A',
-      Lección: record.lessonTitle || 'N/A',
-      'Fecha Completada': record.completedAt ? formatDate(record.completedAt) : 'N/A',
-      'Fecha Inscripción': record.enrolledAt ? formatDate(record.enrolledAt) : 'N/A'
-    }));
+    if (onProgress) onProgress(1, 1);
 
-    const headers = ['Estudiante', 'Email', 'Curso', 'Módulo', 'Lección', 'Fecha Completada', 'Fecha Inscripción'];
-    const csvContent = convertToCSV(formattedData, headers);
-    const filename = generateFilename('progreso-academico-historico-completo');
+    // Extraer el nombre del archivo del header Content-Disposition
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+      : generateFilename('progreso-academico-historico-completo');
 
-    downloadCSV(csvContent, filename);
+    // Crear URL temporal y descargar
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
   } catch (error) {
     console.error('Error al exportar historial de progreso académico:', error);
@@ -211,62 +186,36 @@ export const exportConsolidatedStudentReport = async (
   onProgress?: (current: number, total: number) => void
 ): Promise<void> => {
   try {
-    // Obtener conteo total de estudiantes
-    const totalCount = await adminClient.fetch<number>(
-      `count(*[_type == "student"])`
-    );
+    if (onProgress) onProgress(0, 1);
 
-    if (onProgress) onProgress(0, totalCount);
+    // Llamar a la API route que maneja la exportación en el servidor
+    const response = await fetch('/api/export/consolidated');
 
-    // Obtener datos consolidados de todos los estudiantes
-    const consolidatedData = await adminClient.fetch<ConsolidatedStudentRecord[]>(`
-      *[_type == "student"] | order(firstName asc) {
-        _id,
-        firstName,
-        lastName,
-        fullName,
-        email,
-        "categoryName": category->name,
-        registrationDate,
-        lastActive,
-        "totalMeetings": count(*[_type == "meeting" && references(^.category._ref) && isVirtual == true]),
-        "attendedMeetings": count(*[_type == "attendance" && student._ref == ^._id && attended == true]),
-        "attendanceRate": count(*[_type == "attendance" && student._ref == ^._id && attended == true]) / count(*[_type == "meeting" && references(^.category._ref) && isVirtual == true]) * 100,
-        "enrolledCourses": count(*[_type == "enrollment" && student._ref == ^._id]),
-        "completedLessons": count(*[_type == "lessonCompletion" && student._ref == ^._id]),
-        "lastLessonCompleted": *[_type == "lessonCompletion" && student._ref == ^._id] | order(completedAt desc)[0].completedAt,
-        "lastAttendanceDate": *[_type == "attendance" && student._ref == ^._id] | order(date desc)[0].date
-      }
-    `);
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
 
-    if (onProgress) onProgress(totalCount, totalCount);
+    // Obtener el archivo CSV como blob
+    const blob = await response.blob();
 
-    // Formatear datos para CSV
-    const formattedData = consolidatedData.map(record => ({
-      Estudiante: record.fullName || `${record.firstName || ''} ${record.lastName || ''}`.trim() || 'N/A',
-      Email: record.email || 'N/A',
-      Categoría: record.categoryName || 'Sin categoría',
-      'Fecha Registro': record.registrationDate ? formatDate(record.registrationDate) : 'N/A',
-      'Última Actividad': record.lastActive ? formatDate(record.lastActive) : 'N/A',
-      'Total Reuniones': record.totalMeetings || 0,
-      'Asistencias': record.attendedMeetings || 0,
-      'Tasa Asistencia (%)': record.attendanceRate ? Math.round(record.attendanceRate) : 0,
-      'Cursos Inscritos': record.enrolledCourses || 0,
-      'Lecciones Completadas': record.completedLessons || 0,
-      'Última Lección': record.lastLessonCompleted ? formatDate(record.lastLessonCompleted) : 'N/A',
-      'Última Asistencia': record.lastAttendanceDate ? formatDate(record.lastAttendanceDate) : 'N/A'
-    }));
+    if (onProgress) onProgress(1, 1);
 
-    const headers = [
-      'Estudiante', 'Email', 'Categoría', 'Fecha Registro', 'Última Actividad',
-      'Total Reuniones', 'Asistencias', 'Tasa Asistencia (%)',
-      'Cursos Inscritos', 'Lecciones Completadas', 'Última Lección', 'Última Asistencia'
-    ];
+    // Extraer el nombre del archivo del header Content-Disposition
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+      : generateFilename('reporte-consolidado-estudiantes');
 
-    const csvContent = convertToCSV(formattedData, headers);
-    const filename = generateFilename('reporte-consolidado-estudiantes');
-
-    downloadCSV(csvContent, filename);
+    // Crear URL temporal y descargar
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
   } catch (error) {
     console.error('Error al exportar reporte consolidado:', error);
@@ -282,49 +231,46 @@ export const exportAttendanceByDateRange = async (
   onProgress?: (current: number, total: number) => void
 ): Promise<void> => {
   try {
-    let query = `*[_type == "attendance" && date >= $startDate && date <= $endDate`;
-    const params: any = {
-      startDate: new Date(startDate).toISOString(),
-      endDate: new Date(endDate + 'T23:59:59').toISOString()
-    };
+    if (onProgress) onProgress(0, 1);
+
+    // Construir parámetros para la API
+    const params = new URLSearchParams({
+      startDate,
+      endDate,
+    });
 
     if (categoryId && categoryId !== 'all') {
-      query += ` && category._ref == $categoryId`;
-      params.categoryId = categoryId;
+      params.append('categoryId', categoryId);
     }
 
-    query += `] | order(date desc) {
-      _id,
-      date,
-      attended,
-      "studentFirstName": student->firstName,
-      "studentFullName": student->fullName,
-      "studentEmail": student->email,
-      "categoryName": category->name,
-      "meetingTitle": meeting->title,
-      "meetingType": meeting->isVirtual ? "Virtual" : "Presencial"
-    }`;
+    // Llamar a la API route que maneja la exportación en el servidor
+    const response = await fetch(`/api/export/attendance-range?${params.toString()}`);
 
-    const attendanceData = await adminClient.fetch<AttendanceRecord[]>(query, params);
+    if (!response.ok) {
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
 
-    if (onProgress) onProgress(attendanceData.length, attendanceData.length);
+    // Obtener el archivo CSV como blob
+    const blob = await response.blob();
 
-    // Formatear datos para CSV
-    const formattedData = attendanceData.map(record => ({
-      Estudiante: record.studentFullName || record.studentFirstName || 'N/A',
-      Email: record.studentEmail || 'N/A',
-      Categoría: record.categoryName || 'N/A',
-      Reunión: record.meetingTitle || 'N/A',
-      Tipo: record.meetingType || 'N/A',
-      Fecha: record.date ? formatDate(record.date) : 'N/A',
-      Asistió: record.attended ? 'Sí' : 'No'
-    }));
+    if (onProgress) onProgress(1, 1);
 
-    const headers = ['Estudiante', 'Email', 'Categoría', 'Reunión', 'Tipo', 'Fecha', 'Asistió'];
-    const csvContent = convertToCSV(formattedData, headers);
-    const filename = generateFilename(`asistencias-${startDate}-a-${endDate}`);
+    // Extraer el nombre del archivo del header Content-Disposition
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+      : generateFilename(`asistencias-${startDate}-a-${endDate}`);
 
-    downloadCSV(csvContent, filename);
+    // Crear URL temporal y descargar
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
   } catch (error) {
     console.error('Error al exportar asistencias por rango de fechas:', error);
