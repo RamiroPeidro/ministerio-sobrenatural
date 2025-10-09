@@ -8,7 +8,8 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
-import { HistoricalExportButton, DateRangeExport } from "@/components/HistoricalExportButton";
+import { HistoricalExportButton } from "@/components/HistoricalExportButton";
+import { ExportByDateRangeComponent } from "@/components/ExportByDateRangeComponent";
 import {
   FileSpreadsheet,
   Database,
@@ -273,35 +274,3 @@ export default async function ExportPage() {
   );
 }
 
-// Componente cliente para manejar el rango de fechas
-"use client";
-
-import { useState, useEffect } from 'react';
-
-function ExportByDateRangeComponent({ categories }: { categories: Array<{ _id: string; name: string }> }) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [categoryId, setCategoryId] = useState('all');
-
-  // Establecer fechas predeterminadas (último mes)
-  useEffect(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setMonth(start.getMonth() - 1);
-
-    setEndDate(end.toISOString().split('T')[0]);
-    setStartDate(start.toISOString().split('T')[0]);
-  }, []);
-
-  return (
-    <DateRangeExport
-      startDate={startDate}
-      endDate={endDate}
-      categoryId={categoryId}
-      onStartDateChange={setStartDate}
-      onEndDateChange={setEndDate}
-      onCategoryChange={setCategoryId}
-      categories={categories}
-    />
-  );
-}
