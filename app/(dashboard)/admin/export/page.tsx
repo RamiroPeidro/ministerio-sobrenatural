@@ -30,7 +30,8 @@ async function isAdmin(userId: string) {
   return Boolean(user);
 }
 
-// Obtener estadísticas para mostrar estimaciones
+// Obtener estadísticas para mostrar estimaciones. 
+// hola como va
 async function getExportStats() {
   return await adminClient.fetch(`{
     "totalAttendance": count(*[_type == "attendance"]),
