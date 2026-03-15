@@ -13,7 +13,11 @@ export async function getCourseProgress(clerkId: string, courseId: string) {
   }
 
   const progressQuery = defineQuery(`{
-    "completedLessons": *[_type == "lessonCompletion" && student._ref == $studentId && course._ref == $courseId] {
+    "completedLessons": *[_type == "lessonCompletion"
+      && student._ref == $studentId
+      && course._ref == $courseId
+      && course->category._ref == *[_type == "student" && _id == $studentId][0].category._ref
+    ] {
       ...,
       "lesson": lesson->{...},
       "module": module->{...}

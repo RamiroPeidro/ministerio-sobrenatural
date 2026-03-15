@@ -1,12 +1,9 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { getLessonById } from "@/sanity/lib/lessons/getLessonById";
-import { PortableText } from "@portabletext/react";
 import { LoomEmbed } from "@/components/LoomEmbed";
-import { VideoPlayer } from "@/components/VideoPlayer";
-import { LessonCompleteButton } from "@/components/LessonCompleteButton";
+import { LessonPageClient } from "@/components/LessonPageClient";
 import { Lock, Calendar } from "lucide-react";
-import Link from "next/link";
 
 interface LessonPageProps {
   params: Promise<{
@@ -123,25 +120,11 @@ export default async function LessonPage({ params }: LessonPageProps) {
           )}
 
           <div className="space-y-8">
-            {/* Video Section */}
-            {lesson.videoUrl && <VideoPlayer url={lesson.videoUrl} lessonId={lesson._id} />}
-
             {/* Loom Embed Video if loomUrl is provided */}
             {lesson.loomUrl && <LoomEmbed shareUrl={lesson.loomUrl} />}
 
-            {/* Lesson Content */}
-            {lesson.content && (
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Lesson Notes</h2>
-                <div className="prose prose-blue dark:prose-invert max-w-none">
-                  <PortableText value={lesson.content} />
-                </div>
-              </div>
-            )}
-
-            <div className="flex justify-end">
-              <LessonCompleteButton lessonId={lesson._id} clerkId={user!.id} />
-            </div>
+            {/* Video and Content (client component with quiz) */}
+            <LessonPageClient lesson={lesson} studentId={user!.id} />
           </div>
         </div>
       </div>

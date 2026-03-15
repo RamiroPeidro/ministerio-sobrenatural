@@ -10,6 +10,9 @@ import { categoryType } from "./categoryType";
 import { lessonCompletionType } from "./lessonCompletionType";
 import { attendanceType } from "./attendanceType";
 import { meetingType } from "./meetingType";
+import { quizType } from "./quizType";
+import { questionType } from "./questionType";
+import { quizAttemptType } from "./quizAttemptType";
 
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
@@ -24,6 +27,9 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     lessonCompletionType,
     attendanceType,
     meetingType,
+    quizType,
+    questionType,
+    quizAttemptType,
   ],
 };
 
@@ -38,3 +44,6 @@ export * from "./categoryType";
 export * from "./lessonCompletionType";
 export * from "./attendanceType";
 export * from "./meetingType";
+export * from "./quizType";
+export * from "./questionType";
+export * from "./quizAttemptType";

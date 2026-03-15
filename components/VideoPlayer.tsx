@@ -32,8 +32,10 @@ interface VideoPlayerProps {
 export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<PlayerInstance | null>(null);
+  const reactPlayerRef = useRef<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPlayerJsLoaded, setIsPlayerJsLoaded] = useState(false);
+  const maxWatchedTimeRef = useRef<number>(0);
   
   // Detectar si es una URL de Bunny.net
   const isBunnyUrl = useMemo(() => {
@@ -153,18 +155,32 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
 
       player.on('ready', () => {
         setIsLoading(false);
-        
+
         // Restaurar el progreso guardado si existe
         const savedProgress = getSavedProgress();
         console.log("[DEBUG] Progreso guardado:", savedProgress);
         if (savedProgress?.currentTime) {
           console.log("[DEBUG] Restaurando a tiempo:", savedProgress.currentTime);
+          maxWatchedTimeRef.current = savedProgress.currentTime;
           player.setCurrentTime(savedProgress.currentTime);
         }
 
         // Guardar progreso usando el evento timeupdate
         player.on('timeupdate', (data: { seconds: number, duration: number }) => {
           console.log("[DEBUG] timeupdate:", data);
+
+          // Prevenir adelantar video
+          if (data.seconds > maxWatchedTimeRef.current + 2) {
+            console.log("[DEBUG] Intentó adelantar - bloqueando");
+            player.setCurrentTime(maxWatchedTimeRef.current);
+            return;
+          }
+
+          // Actualizar máximo tiempo visto
+          if (data.seconds > maxWatchedTimeRef.current) {
+            maxWatchedTimeRef.current = data.seconds;
+          }
+
           if (Math.floor(data.seconds) % 10 === 0) { // Solo guardar cada 10 segundos
             console.log("[DEBUG] Guardando progreso");
             saveProgress(data.seconds);
@@ -197,6 +213,17 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
 
   // Manejador para ReactPlayer
   const handleReactPlayerProgress = ({ playedSeconds }: { playedSeconds: number }) => {
+    // Prevenir adelantar video
+    if (playedSeconds > maxWatchedTimeRef.current + 2 && reactPlayerRef.current) {
+      reactPlayerRef.current.seekTo(maxWatchedTimeRef.current, 'seconds');
+      return;
+    }
+
+    // Actualizar máximo tiempo visto
+    if (playedSeconds > maxWatchedTimeRef.current) {
+      maxWatchedTimeRef.current = playedSeconds;
+    }
+
     if (Math.floor(playedSeconds) % 10 === 0) { // Guardar cada 10 segundos
       saveProgress(playedSeconds);
     }
@@ -230,6 +257,7 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
       ) : (
         // ReactPlayer para otros videos (YouTube, etc.)
         <ReactPlayer
+          ref={reactPlayerRef}
           url={url}
           width="100%"
           height="100%"
@@ -238,6 +266,13 @@ export const VideoPlayer = ({ url, lessonId = "" }: VideoPlayerProps) => {
           onEnded={handleReactPlayerEnded}
           onProgress={handleReactPlayerProgress}
           progressInterval={1000}
+          onReady={() => {
+            const savedProgress = getSavedProgress();
+            if (savedProgress?.currentTime && reactPlayerRef.current) {
+              maxWatchedTimeRef.current = savedProgress.currentTime;
+              reactPlayerRef.current.seekTo(savedProgress.currentTime, 'seconds');
+            }
+          }}
         />
       )}
     </div>

@@ -1,21 +1,21 @@
 import { redirect } from "next/navigation";
 import { currentUser } from "@clerk/nextjs/server";
 import { adminClient } from "@/sanity/lib/adminClient";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
-import { 
-  Table, 
-  TableBody, 
-  TableCaption, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Student } from "@/types/sanity";
 import { formatDate } from "@/lib/utils";
@@ -68,30 +68,44 @@ async function getStudentStats() {
   }`);
 }
 
+// Obtener todas las categorías
+async function getCategories() {
+  return await adminClient.fetch<{ _id: string; name: string }[]>(
+    `*[_type == "category"] | order(name asc) {
+      _id,
+      name
+    }`
+  );
+}
+
+// Importar el componente de cliente
+import { ChangeCategoryDialog } from "@/components/ChangeCategoryDialog";
+
 export default async function StudentsPage() {
   const user = await currentUser();
-  
+
   if (!user?.id) {
     return redirect("/auth/sign-in?redirectUrl=/admin/students");
   }
-  
+
   // Verificar si el usuario es administrador
   const adminStatus = await isAdmin(user.id);
-  
+
   if (!adminStatus) {
     return redirect("/auth/sign-in?message=Acceso%20restringido.%20Solo%20administradores");
   }
-  
-  // Obtener datos de estudiantes
+
+  // Obtener datos de estudiantes y categorías
   const students = await getAllStudents();
   const stats = await getStudentStats();
-  
+  const categories = await getCategories();
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Gestión de Estudiantes</h1>
-        <Link 
-          href="https://ministerio-sobrenatural.sanity.studio/studio/structure/userManagement;students" 
+        <Link
+          href="https://ministerio-sobrenatural.sanity.studio/studio/structure/userManagement;students"
           target="_blank"
         >
           <Button>
@@ -99,7 +113,7 @@ export default async function StudentsPage() {
           </Button>
         </Link>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
@@ -107,21 +121,21 @@ export default async function StudentsPage() {
             <CardTitle className="text-4xl">{stats.totalStudents}</CardTitle>
           </CardHeader>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Activos (último mes)</CardDescription>
             <CardTitle className="text-4xl">{stats.activeStudents}</CardTitle>
           </CardHeader>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Inactivos</CardDescription>
             <CardTitle className="text-4xl">{stats.inactiveStudents}</CardTitle>
           </CardHeader>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Administradores</CardDescription>
@@ -129,7 +143,7 @@ export default async function StudentsPage() {
           </CardHeader>
         </Card>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
@@ -137,7 +151,7 @@ export default async function StudentsPage() {
             <CardTitle className="text-4xl">{stats.totalEnrollments}</CardTitle>
           </CardHeader>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Lecciones Completadas</CardDescription>
@@ -145,7 +159,7 @@ export default async function StudentsPage() {
           </CardHeader>
         </Card>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Lista de Estudiantes</CardTitle>
@@ -153,8 +167,8 @@ export default async function StudentsPage() {
             Todos los estudiantes registrados en el sistema
           </CardDescription>
           <div className="mt-4">
-            <Input 
-              placeholder="Buscar estudiante..." 
+            <Input
+              placeholder="Buscar estudiante..."
               className="max-w-sm"
               disabled
             />
@@ -173,7 +187,7 @@ export default async function StudentsPage() {
                 <TableHead>Rol</TableHead>
                 <TableHead>Asistencia</TableHead>
                 <TableHead>Cursos Inscritos</TableHead>
-                <TableHead>Lecciones Completadas</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -182,7 +196,10 @@ export default async function StudentsPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      {student.fullName || `${student.firstName} ${student.lastName || ""}`}
+                      <div>
+                        <div className="font-medium">{student.fullName || `${student.firstName} ${student.lastName || ""}`}</div>
+                        <div className="text-xs text-muted-foreground">ID: {student._id.slice(0, 8)}...</div>
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -212,12 +229,12 @@ export default async function StudentsPage() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full" 
+                        <div
+                          className="h-full bg-primary rounded-full"
                           style={{ width: `${student.attendanceRate || 0}%` }}
                         />
                       </div>
-                      <span>
+                      <span className="text-xs">
                         {student.attendedCount || 0}/{student.totalAttendance || 0}
                       </span>
                     </div>
@@ -226,14 +243,19 @@ export default async function StudentsPage() {
                     <span>{student.enrolledCourses || 0}</span>
                   </TableCell>
                   <TableCell>
-                    <span>{student.completedLessons || 0}</span>
+                    <ChangeCategoryDialog
+                      studentId={student._id}
+                      studentName={student.fullName || student.firstName || "Estudiante"}
+                      currentCategoryId={student.category}
+                      categories={categories}
+                    />
                   </TableCell>
                 </TableRow>
               ))}
-              
+
               {students.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                     No hay estudiantes registrados
                   </TableCell>
                 </TableRow>
@@ -242,10 +264,10 @@ export default async function StudentsPage() {
           </Table>
         </CardContent>
       </Card>
-      
+
       <div className="mt-6">
         <p className="text-muted-foreground text-sm">
-          Para una gestión más detallada de estudiantes, utilice Sanity Studio donde puede crear, 
+          Para una gestión más detallada de estudiantes, utilice Sanity Studio donde puede crear,
           editar y eliminar perfiles de estudiantes, así como gestionar sus roles y permisos.
         </p>
       </div>

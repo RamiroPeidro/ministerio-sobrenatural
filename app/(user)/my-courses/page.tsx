@@ -11,6 +11,8 @@ import { getStudentCategory } from "@/sanity/lib/categories/getStudentCategory";
 import { AttendanceLink } from "@/components/AttendanceLink";
 import { getUpcomingMeetingsByCategory } from "@/sanity/lib/meetings/getMeetingsByCategory";
 import { MeetingsList } from "@/components/MeetingsList";
+import { AttendanceWidget } from "@/components/AttendanceWidget";
+import { getStudentAttendanceStats } from "@/lib/attendance";
 
 export default async function MyCoursesPage() {
   const user = await currentUser();
@@ -25,9 +27,12 @@ export default async function MyCoursesPage() {
   const studentCategory = await getStudentCategory(user.id);
 
   // Obtener próximas reuniones programadas para la categoría del estudiante
-  const upcomingMeetings = studentCategory?._id 
+  const upcomingMeetings = studentCategory?._id
     ? await getUpcomingMeetingsByCategory(studentCategory._id, 5)
     : [];
+
+  // Obtener estadísticas de asistencia
+  const attendanceStats = await getStudentAttendanceStats(user.id);
 
   // Get progress for each enrolled course
   const coursesWithProgress = await Promise.all(
@@ -51,14 +56,28 @@ export default async function MyCoursesPage() {
           </p>
         </div>
 
-        {/* Mostrar el componente de reuniones */}
-        {studentCategory?._id && (
-          <MeetingsList 
-            meetings={upcomingMeetings} 
-            categoryId={studentCategory._id} 
-            categoryName={studentCategory.name || ""}
-          />
-        )}
+        {/* Grid de widgets: Asistencia y Reuniones */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Widget de Asistencia */}
+          {attendanceStats && (
+            <AttendanceWidget
+              percentage={attendanceStats.percentage}
+              attendedCount={attendanceStats.attendedCount}
+              totalMeetings={attendanceStats.totalMeetings}
+            />
+          )}
+
+          {/* Mostrar el componente de reuniones */}
+          {studentCategory?._id && (
+            <div className="md:col-span-1">
+              <MeetingsList
+                meetings={upcomingMeetings}
+                categoryId={studentCategory._id}
+                categoryName={studentCategory.name || ""}
+              />
+            </div>
+          )}
+        </div>
 
         <div className="container mx-auto px-4 py-8">
           {enrolledCourses.length === 0 ? (
